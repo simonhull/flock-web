@@ -44,6 +44,7 @@
 		"wrangler": "^4.56.0"
 	},
 	"dependencies": {
-		"@sveltejs/adapter-cloudflare": "^7.2.4"
+		"@sveltejs/adapter-cloudflare": "^7.2.4",
+		"better-auth": "^1.4.7"
 	}
 }

@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test'
 
 test.describe('Health API', () => {
-	test('GET /api/health returns database status', async ({ request }) => {
+	test('GET /api/health returns database status with all tables', async ({ request }) => {
 		const response = await request.get('/api/health')
 
 		expect(response.ok()).toBe(true)
@@ -9,11 +9,14 @@ test.describe('Health API', () => {
 
 		const body = await response.json()
 
-		expect(body).toMatchObject({
-			status: 'ok',
-			database: 'connected',
-		})
-		expect(typeof body.userCount).toBe('number')
+		expect(body.status).toBe('ok')
+		expect(body.database).toBe('connected')
+
+		// Verify all schema tables exist
+		const expectedTables = ['account', 'profile', 'session', 'user', 'verification']
+		for (const table of expectedTables) {
+			expect(body.tables).toContain(table)
+		}
 	})
 
 	test('health endpoint responds quickly', async ({ request }) => {

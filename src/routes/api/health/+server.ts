@@ -1,6 +1,6 @@
+import { sql } from 'drizzle-orm'
 import { json } from '@sveltejs/kit'
 import { createDb } from '$lib/server/db'
-import { user } from '$lib/server/db/schema'
 import type { RequestHandler } from './$types'
 
 export const GET: RequestHandler = async ({ platform }) => {
@@ -10,12 +10,18 @@ export const GET: RequestHandler = async ({ platform }) => {
 
 	const db = createDb(platform.env.DB)
 
-	// Simple query to verify connection
-	const users = await db.select().from(user).limit(1)
+	// Verify all tables exist by querying sqlite_master
+	const tables = await db.all<{ name: string }>(
+		sql`SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name NOT LIKE '_cf_%'`,
+	)
+
+	const tableNames = tables.map(t => t.name).sort()
+	const expectedTables = ['account', 'profile', 'session', 'user', 'verification']
+	const allTablesExist = expectedTables.every(t => tableNames.includes(t))
 
 	return json({
-		status: 'ok',
+		status: allTablesExist ? 'ok' : 'degraded',
 		database: 'connected',
-		userCount: users.length,
+		tables: tableNames,
 	})
 }
