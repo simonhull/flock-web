@@ -1,11 +1,8 @@
-import { env } from '$env/dynamic/private'
-import { createClient } from '@libsql/client'
-import { drizzle } from 'drizzle-orm/libsql'
+import { drizzle } from 'drizzle-orm/d1'
 import * as schema from './schema'
 
-if (!env.DATABASE_URL)
-	throw new Error('DATABASE_URL is not set')
+export function createDb(d1: D1Database) {
+	return drizzle(d1, { schema })
+}
 
-const client = createClient({ url: env.DATABASE_URL })
-
-export const db = drizzle(client, { schema })
+export type Database = ReturnType<typeof createDb>
