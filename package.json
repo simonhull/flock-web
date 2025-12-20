@@ -1,8 +1,8 @@
 {
 	"name": "flock",
-	"private": true,
-	"version": "0.0.1",
 	"type": "module",
+	"version": "0.0.1",
+	"private": true,
 	"scripts": {
 		"dev": "vite dev",
 		"build": "vite build",
@@ -20,8 +20,7 @@
 		"db:studio": "drizzle-kit studio"
 	},
 	"devDependencies": {
-		"@eslint/compat": "^1.4.0",
-		"@eslint/js": "^9.39.1",
+		"@antfu/eslint-config": "^6.7.1",
 		"@libsql/client": "^0.15.15",
 		"@playwright/test": "^1.57.0",
 		"@sveltejs/adapter-auto": "^7.0.0",
@@ -33,14 +32,12 @@
 		"drizzle-kit": "^0.31.8",
 		"drizzle-orm": "^0.45.0",
 		"eslint": "^9.39.1",
-		"eslint-plugin-svelte": "^3.13.1",
-		"globals": "^16.5.0",
+		"eslint-plugin-better-tailwindcss": "^3.8.0",
 		"playwright": "^1.57.0",
 		"svelte": "^5.45.6",
 		"svelte-check": "^4.3.4",
 		"tailwindcss": "^4.1.17",
 		"typescript": "^5.9.3",
-		"typescript-eslint": "^8.48.1",
 		"vite": "^7.2.6",
 		"vite-plugin-devtools-json": "^1.0.0",
 		"vitest": "^4.0.15",
