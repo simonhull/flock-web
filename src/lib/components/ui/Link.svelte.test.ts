@@ -5,9 +5,7 @@ import Link from './Link.svelte'
 describe('Link', () => {
 	it('renders and has link role', async () => {
 		const { getByRole } = render(Link, {
-			props: {
-				href: '/test',
-			},
+			href: '/test',
 		})
 
 		await expect.element(getByRole('link')).toBeInTheDocument()
@@ -15,9 +13,7 @@ describe('Link', () => {
 
 	it('applies href attribute', async () => {
 		const { getByRole } = render(Link, {
-			props: {
-				href: '/dashboard',
-			},
+			href: '/dashboard',
 		})
 
 		await expect.element(getByRole('link')).toHaveAttribute('href', '/dashboard')
@@ -25,10 +21,8 @@ describe('Link', () => {
 
 	it('applies custom className', async () => {
 		const { getByRole } = render(Link, {
-			props: {
-				href: '/test',
-				class: 'custom-class',
-			},
+			href: '/test',
+			class: 'custom-class',
 		})
 
 		await expect.element(getByRole('link')).toHaveClass('custom-class')
@@ -50,9 +44,7 @@ describe('Link', () => {
 
 	it('has correct base styling', async () => {
 		const { getByRole } = render(Link, {
-			props: {
-				href: '/test',
-			},
+			href: '/test',
 		})
 
 		const link = getByRole('link')

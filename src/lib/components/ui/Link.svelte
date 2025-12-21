@@ -4,7 +4,7 @@
 
 	export interface LinkProps extends HTMLAnchorAttributes {
 		/** Content to render */
-		children: Snippet
+		children?: Snippet
 	}
 </script>
 

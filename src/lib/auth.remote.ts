@@ -82,7 +82,7 @@ export const register = form(RegisterSchema, async (data, issue) => {
 		})
 
 		if (!response.user) {
-			invalid('Registration failed. Please try again.')
+			invalid(issue.email('Registration failed. Please try again.'))
 		}
 	}
 	catch (err) {
@@ -92,7 +92,7 @@ export const register = form(RegisterSchema, async (data, issue) => {
 			invalid(issue.email('An account with this email already exists'))
 		}
 
-		invalid('Registration failed. Please try again.')
+		invalid(issue.email('Registration failed. Please try again.'))
 	}
 
 	redirect(303, '/dashboard')
@@ -121,11 +121,11 @@ export const login = form(LoginSchema, async (data, issue) => {
 		})
 
 		if (!response.user) {
-			invalid('Invalid email or password')
+			invalid(issue.email('Invalid email or password'))
 		}
 	}
 	catch {
-		invalid('Invalid email or password')
+		invalid(issue.email('Invalid email or password'))
 	}
 
 	redirect(303, '/dashboard')

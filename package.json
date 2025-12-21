@@ -16,7 +16,7 @@
 		"test:e2e": "playwright test",
 		"db:generate": "drizzle-kit generate",
 		"db:migrate:local": "bash -c 'for f in drizzle/*.sql; do wrangler d1 execute flock-local --local --file=\"$f\"; done'",
-		"db:reset:local": "rm -rf .wrangler/state",
+		"db:reset": "pkill -f wrangler || true; rm -rf .wrangler/state && pnpm db:migrate:local",
 		"db:studio": "drizzle-kit studio"
 	},
 	"dependencies": {

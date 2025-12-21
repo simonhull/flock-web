@@ -14,11 +14,6 @@
 	subtitle="Sign in to connect with your communities"
 >
 	<form {...login} class="mt-8 space-y-6">
-		{#each (login.fields.allIssues() ?? []).filter(i => !i.path) as issue}
-			<Alert variant="destructive">
-				<AlertDescription>{issue.message}</AlertDescription>
-			</Alert>
-		{/each}
 
 		<div class="space-y-4">
 			<div class="space-y-2">

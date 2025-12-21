@@ -7,7 +7,7 @@
 		/** Subtitle text below the heading */
 		subtitle: string
 		/** The form content */
-		children: Snippet
+		children?: Snippet
 		/** Footer content (typically "Already have an account?" link) */
 		footer?: Snippet
 	}

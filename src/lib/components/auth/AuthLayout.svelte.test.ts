@@ -5,10 +5,8 @@ import AuthLayout from './AuthLayout.svelte'
 describe('AuthLayout', () => {
 	it('renders title as heading', async () => {
 		const { getByRole } = render(AuthLayout, {
-			props: {
-				title: 'Welcome',
-				subtitle: 'Sign in to continue',
-			},
+			title: 'Welcome',
+			subtitle: 'Sign in to continue',
 		})
 
 		await expect.element(getByRole('heading', { level: 1 })).toHaveTextContent('Welcome')
@@ -16,10 +14,8 @@ describe('AuthLayout', () => {
 
 	it('renders subtitle', async () => {
 		const { getByText } = render(AuthLayout, {
-			props: {
-				title: 'Test',
-				subtitle: 'This is a subtitle',
-			},
+			title: 'Test',
+			subtitle: 'This is a subtitle',
 		})
 
 		await expect.element(getByText('This is a subtitle')).toBeInTheDocument()
@@ -27,10 +23,8 @@ describe('AuthLayout', () => {
 
 	it('has centered layout container', async () => {
 		const { container } = render(AuthLayout, {
-			props: {
-				title: 'Test',
-				subtitle: 'Test subtitle',
-			},
+			title: 'Test',
+			subtitle: 'Test subtitle',
 		})
 
 		const wrapper = container.querySelector('.flex.min-h-screen')
@@ -41,10 +35,8 @@ describe('AuthLayout', () => {
 
 	it('applies semantic background color', async () => {
 		const { container } = render(AuthLayout, {
-			props: {
-				title: 'Test',
-				subtitle: 'Test subtitle',
-			},
+			title: 'Test',
+			subtitle: 'Test subtitle',
 		})
 
 		const wrapper = container.querySelector('.bg-background')
@@ -53,10 +45,8 @@ describe('AuthLayout', () => {
 
 	it('applies foreground color to title', async () => {
 		const { getByRole } = render(AuthLayout, {
-			props: {
-				title: 'Test Title',
-				subtitle: 'Test subtitle',
-			},
+			title: 'Test Title',
+			subtitle: 'Test subtitle',
 		})
 
 		await expect.element(getByRole('heading', { level: 1 })).toHaveClass('text-foreground')
@@ -64,10 +54,8 @@ describe('AuthLayout', () => {
 
 	it('applies muted color to subtitle', async () => {
 		const { getByText } = render(AuthLayout, {
-			props: {
-				title: 'Test',
-				subtitle: 'Muted subtitle',
-			},
+			title: 'Test',
+			subtitle: 'Muted subtitle',
 		})
 
 		await expect.element(getByText('Muted subtitle')).toHaveClass('text-muted-foreground')
@@ -75,10 +63,8 @@ describe('AuthLayout', () => {
 
 	it('has max width constraint', async () => {
 		const { container } = render(AuthLayout, {
-			props: {
-				title: 'Test',
-				subtitle: 'Test subtitle',
-			},
+			title: 'Test',
+			subtitle: 'Test subtitle',
 		})
 
 		const contentWrapper = container.querySelector('.max-w-md')
