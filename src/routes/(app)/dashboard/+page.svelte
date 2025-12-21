@@ -1,53 +1,56 @@
-<script lang='ts'>
-	import { enhance } from '$app/forms'
+<script lang="ts">
+	import { goto } from '$app/navigation'
+	import { getUser, logout } from '$lib/auth.remote'
+	import { Button, Card, CardContent } from '$lib/components/ui'
 
-	let isLoggingOut = $state(false)
+	async function handleLogout() {
+		await logout()
+		goto('/login')
+	}
 </script>
 
 <svelte:head>
 	<title>Dashboard | Flock</title>
 </svelte:head>
 
-<div class='min-h-screen bg-gray-50'>
-	<nav class='bg-white shadow'>
-		<div class='mx-auto flex max-w-4xl items-center justify-between px-4 py-4'>
-			<h1 class='text-xl font-bold text-gray-900'>Flock</h1>
-			<form
-				method='POST'
-				action='?/logout'
-				use:enhance={() => {
-					isLoggingOut = true
-					return async ({ update }) => {
-						await update()
-						isLoggingOut = false
-					}
-				}}
-			>
-				<button
-					type='submit'
-					disabled={isLoggingOut}
-					class='
-       rounded px-2 py-1 text-sm text-gray-600 transition-colors
-       hover:text-gray-900
-       focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:outline-none
-       disabled:opacity-50
-     '
-				>
-					{isLoggingOut ? 'Signing out...' : 'Sign out'}
-				</button>
-			</form>
+<div class="min-h-screen bg-background">
+	<nav class="bg-card shadow">
+		<div class="mx-auto flex max-w-4xl items-center justify-between px-4 py-4">
+			<h1 class="text-xl font-bold text-foreground">Flock</h1>
+			<Button variant="ghost" onclick={handleLogout}>
+				Sign out
+			</Button>
 		</div>
 	</nav>
 
-	<main class='mx-auto max-w-4xl px-4 py-8'>
-		<div class='rounded-lg bg-white p-6 shadow'>
-			<h2 class='text-lg font-medium text-gray-900'>Welcome to Flock</h2>
-			<p class='mt-2 text-gray-600'>
-				You're signed in! This is a placeholder dashboard.
-			</p>
-			<p class='mt-4 text-sm text-gray-500'>
-				Auth is working. Next: protected routes, user profile display.
-			</p>
-		</div>
+	<main class="mx-auto max-w-4xl px-4 py-8">
+		<svelte:boundary>
+			{#snippet pending()}
+				<Card>
+					<CardContent class="pt-6">
+						<div class="animate-pulse space-y-4">
+							<div class="h-6 w-48 rounded bg-muted"></div>
+							<div class="h-4 w-64 rounded bg-muted"></div>
+						</div>
+					</CardContent>
+				</Card>
+			{/snippet}
+
+			{@const user = await getUser()}
+
+			<Card>
+				<CardContent class="pt-6">
+					<h2 class="text-lg font-medium text-foreground">
+						Welcome{user?.name ? `, ${user.name}` : ''}!
+					</h2>
+					<p class="mt-2 text-muted-foreground">
+						You're signed in as <span class="font-medium">{user?.email}</span>
+					</p>
+					<p class="mt-4 text-sm text-muted-foreground">
+						Your identity belongs to you. Take it anywhere.
+					</p>
+				</CardContent>
+			</Card>
+		</svelte:boundary>
 	</main>
 </div>

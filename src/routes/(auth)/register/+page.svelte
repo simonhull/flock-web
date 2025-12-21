@@ -1,167 +1,81 @@
-<script lang='ts'>
-	import type { ActionData } from './$types'
-	import { enhance } from '$app/forms'
-
-	interface Props {
-		form: ActionData
-	}
-
-	const { form }: Props = $props()
-	let isSubmitting = $state(false)
+<script lang="ts">
+	import { register } from '$lib/auth.remote'
+	import { AuthLayout } from '$lib/components/auth'
+	import { Button, Input, Label, Link, Alert, AlertDescription } from '$lib/components/ui'
+	import LoaderCircle from 'lucide-svelte/icons/loader-circle'
 </script>
 
 <svelte:head>
 	<title>Create Account | Flock</title>
 </svelte:head>
 
-<div class='
-  flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12
-'>
-	<div class='w-full max-w-md space-y-8'>
-		<div class='text-center'>
-			<h1 class='text-3xl font-bold text-gray-900'>Create your account</h1>
-			<p class='mt-2 text-gray-600'>
-				Your identity. Your communities. Your journey.
-			</p>
-		</div>
+<AuthLayout
+	title="Create your account"
+	subtitle="Your identity. Your communities. Your journey."
+>
+	<form {...register} class="mt-8 space-y-6">
+		{#each (register.fields.allIssues() ?? []).filter(i => !i.path) as issue}
+			<Alert variant="destructive">
+				<AlertDescription>{issue.message}</AlertDescription>
+			</Alert>
+		{/each}
 
-		<form
-			method='POST'
-			class='mt-8 space-y-6'
-			use:enhance={() => {
-				isSubmitting = true
-				return async ({ update }) => {
-					await update()
-					isSubmitting = false
-				}
-			}}
-		>
-			{#if form?.error}
-				<div
-					class='rounded-md bg-red-50 p-4 text-sm text-red-700'
-					role='alert'
-					aria-live='polite'
-				>
-					{form.error}
-				</div>
-			{/if}
-
-			<div class='space-y-4'>
-				<div>
-					<label for='email' class='block text-sm font-medium text-gray-700'>
-						Email address
-					</label>
-					<input
-						id='email'
-						name='email'
-						type='email'
-						autocomplete='email'
-						required
-						value={form?.email ?? ''}
-						aria-invalid={form?.errors?.['email'] ? 'true' : undefined}
-						aria-describedby={form?.errors?.['email'] ? 'email-error' : undefined}
-						class='
-        mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm
-        focus:border-primary-500 focus:ring-2 focus:ring-primary-500
-        focus:ring-offset-1 focus:outline-none
-      '
-						class:border-red-500={form?.errors?.['email']}
-					/>
-					{#if form?.errors?.['email']}
-						<p id='email-error' class='mt-1 text-sm text-red-600' role='alert'>
-							{form.errors['email']}
-						</p>
-					{/if}
-				</div>
-
-				<div>
-					<label for='password' class='block text-sm font-medium text-gray-700'>
-						Password
-					</label>
-					<input
-						id='password'
-						name='password'
-						type='password'
-						autocomplete='new-password'
-						required
-						minlength={8}
-						aria-invalid={form?.errors?.['password'] ? 'true' : undefined}
-						aria-describedby={form?.errors?.['password'] ? 'password-error' : 'password-hint'}
-						class='
-        mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm
-        focus:border-primary-500 focus:ring-2 focus:ring-primary-500
-        focus:ring-offset-1 focus:outline-none
-      '
-						class:border-red-500={form?.errors?.['password']}
-					/>
-					<p id='password-hint' class='mt-1 text-sm text-gray-500'>
-						At least 8 characters
-					</p>
-					{#if form?.errors?.['password']}
-						<p id='password-error' class='mt-1 text-sm text-red-600' role='alert'>
-							{form.errors['password']}
-						</p>
-					{/if}
-				</div>
-
-				<div>
-					<label for='confirmPassword' class='
-						block text-sm font-medium text-gray-700
-	 	 	'>
-						Confirm password
-					</label>
-					<input
-						id='confirmPassword'
-						name='confirmPassword'
-						type='password'
-						autocomplete='new-password'
-						required
-						aria-invalid={form?.errors?.['confirmPassword'] ? 'true' : undefined}
-						aria-describedby={form?.errors?.['confirmPassword'] ? 'confirmPassword-error' : undefined}
-						class='
-        mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm
-        focus:border-primary-500 focus:ring-2 focus:ring-primary-500
-        focus:ring-offset-1 focus:outline-none
-      '
-						class:border-red-500={form?.errors?.['confirmPassword']}
-					/>
-					{#if form?.errors?.['confirmPassword']}
-						<p id='confirmPassword-error' class='mt-1 text-sm text-red-600' role='alert'>
-							{form.errors['confirmPassword']}
-						</p>
-					{/if}
-				</div>
+		<div class="space-y-4">
+			<div class="space-y-2">
+				<Label for="email">Email address</Label>
+				<Input
+					{...register.fields.email.as('email')}
+					id="email"
+					aria-invalid={(register.fields.email.issues() ?? []).length > 0}
+					autocomplete="email"
+					required
+				/>
+				{#each register.fields.email.issues() ?? [] as issue}
+					<p class="text-sm text-destructive">{issue.message}</p>
+				{/each}
 			</div>
 
-			<button
-				type='submit'
-				disabled={isSubmitting}
-				class='
-      flex w-full justify-center rounded-md border border-transparent
-      bg-primary-600 px-4 py-3 text-sm font-medium text-white shadow-sm
-      transition-colors
-      hover:bg-primary-700
-      focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:outline-none
-      disabled:cursor-not-allowed disabled:opacity-50
-    '
-			>
-				{#if isSubmitting}
-					Creating account...
-				{:else}
-					Create account
-				{/if}
-			</button>
+			<div class="space-y-2">
+				<Label for="password">Password</Label>
+				<Input
+					{...register.fields._password.as('password')}
+					id="password"
+					aria-invalid={(register.fields._password.issues() ?? []).length > 0}
+					autocomplete="new-password"
+					required
+				/>
+				<p class="text-sm text-muted-foreground">At least 8 characters</p>
+				{#each register.fields._password.issues() ?? [] as issue}
+					<p class="text-sm text-destructive">{issue.message}</p>
+				{/each}
+			</div>
 
-			<p class='text-center text-sm text-gray-600'>
-				Already have an account?
-				<a href='/login' class='
-      rounded text-primary-600 underline
-      hover:text-primary-500
-      focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:outline-none
-    '>
-					Sign in
-				</a>
-			</p>
-		</form>
-	</div>
-</div>
+			<div class="space-y-2">
+				<Label for="confirmPassword">Confirm password</Label>
+				<Input
+					{...register.fields._confirmPassword.as('password')}
+					id="confirmPassword"
+					aria-invalid={(register.fields._confirmPassword.issues() ?? []).length > 0}
+					autocomplete="new-password"
+					required
+				/>
+				{#each register.fields._confirmPassword.issues() ?? [] as issue}
+					<p class="text-sm text-destructive">{issue.message}</p>
+				{/each}
+			</div>
+		</div>
+
+		<Button type="submit" class="w-full" disabled={!!register.pending}>
+			{#if register.pending}
+				<LoaderCircle class="animate-spin" />
+				Creating account...
+			{:else}
+				Create account
+			{/if}
+		</Button>
+	</form>
+
+	{#snippet footer()}
+		Already have an account? <Link href="/login">Sign in</Link>
+	{/snippet}
+</AuthLayout>

@@ -38,8 +38,8 @@ test.describe('Registration Page', () => {
 
 		await expect(page).toHaveURL('/dashboard', { timeout: 15000 })
 		await expect(page.getByRole('heading', { name: 'Flock', exact: true })).toBeVisible()
-		await expect(page.getByRole('heading', { name: 'Welcome to Flock' })).toBeVisible()
-		await expect(page.getByText('You\'re signed in!')).toBeVisible()
+		await expect(page.getByText('Welcome')).toBeVisible()
+		await expect(page.getByText('signed in as')).toBeVisible()
 	})
 
 	test('form fields are focusable via keyboard', async ({ page }) => {
@@ -86,8 +86,10 @@ test.describe('Login Page', () => {
 		await expect(page).toHaveURL('/dashboard', { timeout: 15000 })
 
 		// Logout
-		await page.getByRole('button', { name: 'Sign out' }).click()
-		await expect(page).toHaveURL('/login', { timeout: 10000 })
+		await Promise.all([
+			page.waitForURL('/login', { timeout: 15000 }),
+			page.getByRole('button', { name: 'Sign out' }).click()
+		])
 
 		// Login
 		await page.getByLabel('Email address').fill(email)

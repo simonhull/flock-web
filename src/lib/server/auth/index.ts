@@ -1,4 +1,5 @@
 // Import getRequestEvent for cookie handling in form actions
+import { dev } from '$app/environment'
 import { getRequestEvent } from '$app/server'
 import { betterAuth } from 'better-auth'
 import { drizzleAdapter } from 'better-auth/adapters/drizzle'
@@ -7,8 +8,20 @@ import { drizzle } from 'drizzle-orm/d1'
 
 import * as schema from '../db/schema'
 
-export function createAuth(d1: D1Database, options?: { baseURL?: string }) {
+// Local development origins
+const DEV_ORIGINS = [
+	'http://localhost:5173',
+	'http://localhost:4173',
+	'http://localhost:8788',
+]
+
+export function createAuth(d1: D1Database, options: { baseURL: string }) {
 	const db = drizzle(d1, { schema })
+
+	// Trust the current origin + dev origins in development
+	const trustedOrigins = dev
+		? [...new Set([options.baseURL, ...DEV_ORIGINS])]
+		: [options.baseURL]
 
 	return betterAuth({
 		database: drizzleAdapter(db, {
@@ -30,13 +43,9 @@ export function createAuth(d1: D1Database, options?: { baseURL?: string }) {
 			},
 		},
 
-		baseURL: options?.baseURL ?? 'http://localhost:5173',
+		baseURL: options.baseURL,
 
-		trustedOrigins: [
-			'http://localhost:5173',
-			'http://localhost:4173',
-			'http://localhost:8788',
-		],
+		trustedOrigins,
 
 		// Create profile when user signs up
 		databaseHooks: {
