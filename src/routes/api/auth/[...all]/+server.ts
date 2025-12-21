@@ -1,5 +1,5 @@
-import { createAuth } from '$lib/server/auth'
 import type { RequestHandler } from './$types'
+import { createAuth } from '$lib/server/auth'
 
 const handleAuth: RequestHandler = async ({ request, platform }) => {
 	if (!platform?.env?.DB) {

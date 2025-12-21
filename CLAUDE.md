@@ -26,6 +26,7 @@ Code is poetry. Every function should have one obvious purpose. Every type shoul
 | ORM | Drizzle | Type-safe, no magic, SQL-like |
 | Validation | Valibot | Smaller than Zod, composable schemas |
 | Auth | BetterAuth | Modern, extensible, session-based |
+| UI | shadcn-svelte | Accessible primitives, copy-paste ownership |
 | Styling | Tailwind 4.x | Utility-first, design tokens |
 | Testing | Vitest + Playwright | Fast unit tests, real E2E |
 
@@ -316,15 +317,112 @@ POST   /api/v1/churches/:id/connect  // Action
 
 ---
 
-## Accessibility
+## UI Components
 
-Not optional. Not an afterthought.
+### Philosophy: Primitives First
 
-- Semantic HTML first (`button` not `div onclick`)
-- ARIA only when HTML is insufficient
-- Keyboard navigation for all interactions
-- Color contrast meets WCAG AA minimum
-- Focus management on route changes
+Build a library of small, composable, reusable components. Every component should do one thing well. Compose complexity from simplicity.
+
+### shadcn-svelte — The Foundation
+
+[shadcn-svelte](https://shadcn-svelte.com) is our starting point for UI primitives. Not a dependency — you own the code.
+
+```bash
+# Add components as needed
+npx shadcn-svelte@latest add button
+npx shadcn-svelte@latest add dialog
+npx shadcn-svelte@latest add form
+```
+
+**Why shadcn:**
+- Built on Bits UI (headless, accessible primitives)
+- Copy-paste into `$lib/components/ui/` — you own it
+- Tailwind styling you can customize
+- Keyboard navigation and ARIA built-in
+
+### Component Organization
+
+```
+src/lib/components/
+├── ui/                    # shadcn primitives (Button, Input, Dialog...)
+│   ├── button/
+│   │   ├── index.ts
+│   │   └── button.svelte
+│   └── ...
+├── patterns/              # Composed patterns (SearchInput, UserMenu...)
+└── features/              # Feature-specific (ChurchCard, EventList...)
+```
+
+### Component Principles
+
+1. **Primitives are sacred** — Don't modify `ui/` components heavily; compose around them
+2. **Props over slots** when data is simple; **slots** when content is complex
+3. **Forward all attributes** — Use `{...restProps}` for flexibility
+4. **Types are documentation** — Export prop types for consumers
+
+```svelte
+<!-- ✅ Good: Composable, typed, accessible -->
+<script lang="ts">
+  import { Button } from '$lib/components/ui/button';
+
+  interface Props {
+    loading?: boolean;
+    children: Snippet;
+  }
+  let { loading = false, children }: Props = $props();
+</script>
+
+<Button disabled={loading} aria-busy={loading}>
+  {#if loading}
+    <Spinner class="mr-2" />
+  {/if}
+  {@render children()}
+</Button>
+```
+
+---
+
+## Accessibility — Non-Negotiable
+
+Accessibility is not a feature. It's a requirement. Every component, every interaction.
+
+### Keyboard Navigation is Paramount
+
+If you can't use it with a keyboard, it's broken.
+
+| Pattern | Keys | Behavior |
+|---------|------|----------|
+| Buttons | `Enter`, `Space` | Activate |
+| Dialogs | `Escape` | Close |
+| Menus | `Arrow keys` | Navigate items |
+| Forms | `Tab` | Move between fields |
+| Lists | `Arrow keys`, `Home`, `End` | Navigate |
+
+### The Rules
+
+1. **Semantic HTML first** — `<button>` not `<div onclick>`
+2. **Visible focus states** — Never remove `:focus-visible` outlines
+3. **ARIA only when needed** — HTML semantics first, ARIA to enhance
+4. **Color is not enough** — Icons, text, patterns for meaning
+5. **Announce changes** — Use live regions for dynamic content
+6. **Test with keyboard** — Tab through every flow before shipping
+7. **Focus management** — Return focus after dialogs close, manage on route changes
+
+### Testing Accessibility
+
+```bash
+# Lighthouse in CI
+pnpm test:a11y
+
+# Manual testing checklist
+# ✓ Tab through entire page
+# ✓ Use screen reader (VoiceOver, NVDA)
+# ✓ Zoom to 200%
+# ✓ High contrast mode
+# ✓ Reduce motion preference
+```
+
+**WCAG AA minimum.** AAA where practical.
 
 ---
 
@@ -361,5 +459,6 @@ pnpm build && pnpm deploy   # Ship it
 4. **Errors are explicit** — Typed, coded, handleable
 5. **Security by default** — Auth, validation, parameterized queries
 6. **Test behavior** — What it does, not how it does it
-7. **Accessibility always** — Semantic HTML, keyboard nav, ARIA when needed
-8. **Simplify ruthlessly** — The best code is code you don't write
+7. **Accessibility always** — Keyboard first, semantic HTML, ARIA when needed
+8. **Primitives compose** — Small reusable components, shadcn-svelte foundation
+9. **Simplify ruthlessly** — The best code is code you don't write

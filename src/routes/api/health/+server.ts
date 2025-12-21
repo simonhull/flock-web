@@ -1,7 +1,7 @@
-import { sql } from 'drizzle-orm'
-import { json } from '@sveltejs/kit'
-import { createDb } from '$lib/server/db'
 import type { RequestHandler } from './$types'
+import { createDb } from '$lib/server/db'
+import { json } from '@sveltejs/kit'
+import { sql } from 'drizzle-orm'
 
 export const GET: RequestHandler = async ({ platform }) => {
 	if (!platform?.env?.DB) {

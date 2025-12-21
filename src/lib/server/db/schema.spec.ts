@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import * as schema from './schema'
 
-describe('Schema', () => {
+describe('schema', () => {
 	describe('user table', () => {
 		it('has correct columns for BetterAuth', () => {
 			const columns = Object.keys(schema.user)

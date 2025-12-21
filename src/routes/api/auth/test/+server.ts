@@ -1,6 +1,6 @@
-import { json } from '@sveltejs/kit'
-import { createAuth } from '$lib/server/auth'
 import type { RequestHandler } from './$types'
+import { createAuth } from '$lib/server/auth'
+import { json } from '@sveltejs/kit'
 
 /**
  * Test endpoint to verify auth is working.

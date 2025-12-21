@@ -19,6 +19,11 @@
 		"db:reset:local": "rm -rf .wrangler/state",
 		"db:studio": "drizzle-kit studio"
 	},
+	"dependencies": {
+		"@sveltejs/adapter-cloudflare": "^7.2.4",
+		"better-auth": "^1.4.7",
+		"valibot": "^1.2.0"
+	},
 	"devDependencies": {
 		"@antfu/eslint-config": "^6.7.1",
 		"@cloudflare/workers-types": "^4.20251218.0",
@@ -42,9 +47,5 @@
 		"vitest": "^4.0.15",
 		"vitest-browser-svelte": "^2.0.1",
 		"wrangler": "^4.56.0"
-	},
-	"dependencies": {
-		"@sveltejs/adapter-cloudflare": "^7.2.4",
-		"better-auth": "^1.4.7"
 	}
 }

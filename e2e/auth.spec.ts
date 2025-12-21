@@ -4,7 +4,8 @@ import { expect, test } from '@playwright/test'
  * Helper to parse set-cookie header and extract cookie name=value pairs
  */
 function parseCookies(setCookieHeader: string | undefined): string {
-	if (!setCookieHeader) return ''
+	if (!setCookieHeader)
+		return ''
 	// set-cookie can have multiple cookies separated by newlines or be an array
 	// Each cookie is: name=value; path=/; ...
 	// We only need the name=value part

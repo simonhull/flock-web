@@ -1,6 +1,10 @@
+// Import getRequestEvent for cookie handling in form actions
+import { getRequestEvent } from '$app/server'
 import { betterAuth } from 'better-auth'
 import { drizzleAdapter } from 'better-auth/adapters/drizzle'
+import { sveltekitCookies } from 'better-auth/svelte-kit'
 import { drizzle } from 'drizzle-orm/d1'
+
 import * as schema from '../db/schema'
 
 export function createAuth(d1: D1Database, options?: { baseURL?: string }) {
@@ -40,7 +44,8 @@ export function createAuth(d1: D1Database, options?: { baseURL?: string }) {
 				create: {
 					after: async (user) => {
 						// User is guaranteed to exist after creation
-						if (!user.id) return
+						if (!user.id)
+							return
 						const displayName = user.name ?? user.email.split('@')[0]
 						await db.insert(schema.profile).values({
 							userId: user.id,
@@ -50,6 +55,9 @@ export function createAuth(d1: D1Database, options?: { baseURL?: string }) {
 				},
 			},
 		},
+
+		// Handle cookies in SvelteKit form actions
+		plugins: [sveltekitCookies(getRequestEvent)],
 	})
 }
 

@@ -1,6 +1,6 @@
 name = "flock-web"
 compatibility_date = "2025-12-01"
-compatibility_flags = ["nodejs_compat"]
+compatibility_flags = [ "nodejs_compat" ]
 
 # Local development database
 # Uses --local flag to avoid touching any Cloudflare services
