@@ -47,21 +47,46 @@ Code is poetry. Every function should have one obvious purpose. Every type shoul
 | Rune | Purpose |
 |------|---------|
 | `$state()` | Reactive state |
+| `$state.eager()` | Immediate UI updates (loading states) |
 | `$derived()` | Computed values |
 | `$effect()` | Side effects (use sparingly) |
 | `$props()` | Component props |
 | `$bindable()` | Two-way binding props |
 
-**Never use:** `export let`, `$:`, `$$props`, `$$restProps`, `on:event`
+### Effect with Cancellation
+```typescript
+import { getAbortSignal } from 'svelte';
 
-### Shared State
+$effect(() => {
+  const signal = getAbortSignal();  // Auto-cancels on re-run
+  fetch('/api/data', { signal })
+    .then(res => res.json())
+    .then(data => { /* ... */ });
+});
+```
+
+**Never use:** `export let`, `$:`, `$$props`, `$$restProps`, `on:event`, `use:action`
+
+### Typed Contexts (Preferred for Shared State)
 ```typescript
 // src/lib/stores/user.svelte.ts
-let user = $state<User | null>(null);
-export const userStore = {
-  get current() { return user; },
-  set(u: User | null) { user = u; },
-};
+import { createContext } from 'svelte';
+
+// Type-safe context — no manual casting
+export const userContext = createContext<User | null>('user');
+
+// Usage in components:
+// userContext.set(user)
+// const user = userContext.get()
+```
+
+### Attachments (Replace Actions)
+```svelte
+<!-- ✅ Modern: Attachments -->
+<input {@attach autofocus} />
+
+<!-- ❌ Legacy: Actions (use fromAction to migrate) -->
+<input use:autofocus />
 ```
 
 ---

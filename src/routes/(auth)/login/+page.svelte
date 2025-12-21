@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { login } from '$lib/auth.remote'
 	import { AuthLayout } from '$lib/components/auth'
-	import { Button, Input, Label, Link, Alert, AlertDescription } from '$lib/components/ui'
+	import { Button, FormField, Link } from '$lib/components/ui'
 	import LoaderCircle from 'lucide-svelte/icons/loader-circle'
 </script>
 
@@ -16,33 +16,23 @@
 	<form {...login} class="mt-8 space-y-6">
 
 		<div class="space-y-4">
-			<div class="space-y-2">
-				<Label for="email">Email address</Label>
-				<Input
-					{...login.fields.email.as('email')}
-					id="email"
-					aria-invalid={(login.fields.email.issues() ?? []).length > 0}
-					autocomplete="email"
-					required
-				/>
-				{#each login.fields.email.issues() ?? [] as issue}
-					<p class="text-sm text-destructive">{issue.message}</p>
-				{/each}
-			</div>
+			<FormField
+				field={login.fields.email}
+				label="Email address"
+				type="email"
+				id="email"
+				autocomplete="email"
+				required
+			/>
 
-			<div class="space-y-2">
-				<Label for="password">Password</Label>
-				<Input
-					{...login.fields._password.as('password')}
-					id="password"
-					aria-invalid={(login.fields._password.issues() ?? []).length > 0}
-					autocomplete="current-password"
-					required
-				/>
-				{#each login.fields._password.issues() ?? [] as issue}
-					<p class="text-sm text-destructive">{issue.message}</p>
-				{/each}
-			</div>
+			<FormField
+				field={login.fields._password}
+				label="Password"
+				type="password"
+				id="password"
+				autocomplete="current-password"
+				required
+			/>
 		</div>
 
 		<Button type="submit" class="w-full" disabled={!!login.pending}>

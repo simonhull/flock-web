@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { register } from '$lib/auth.remote'
 	import { AuthLayout } from '$lib/components/auth'
-	import { Button, Input, Label, Link, Alert, AlertDescription } from '$lib/components/ui'
+	import { Alert, AlertDescription, Button, FormField, Link } from '$lib/components/ui'
 	import LoaderCircle from 'lucide-svelte/icons/loader-circle'
 </script>
 
@@ -21,48 +21,33 @@
 		{/each}
 
 		<div class="space-y-4">
-			<div class="space-y-2">
-				<Label for="email">Email address</Label>
-				<Input
-					{...register.fields.email.as('email')}
-					id="email"
-					aria-invalid={(register.fields.email.issues() ?? []).length > 0}
-					autocomplete="email"
-					required
-				/>
-				{#each register.fields.email.issues() ?? [] as issue}
-					<p class="text-sm text-destructive">{issue.message}</p>
-				{/each}
-			</div>
+			<FormField
+				field={register.fields.email}
+				label="Email address"
+				type="email"
+				id="email"
+				autocomplete="email"
+				required
+			/>
 
-			<div class="space-y-2">
-				<Label for="password">Password</Label>
-				<Input
-					{...register.fields._password.as('password')}
-					id="password"
-					aria-invalid={(register.fields._password.issues() ?? []).length > 0}
-					autocomplete="new-password"
-					required
-				/>
-				<p class="text-sm text-muted-foreground">At least 8 characters</p>
-				{#each register.fields._password.issues() ?? [] as issue}
-					<p class="text-sm text-destructive">{issue.message}</p>
-				{/each}
-			</div>
+			<FormField
+				field={register.fields._password}
+				label="Password"
+				type="password"
+				id="password"
+				autocomplete="new-password"
+				hint="At least 8 characters"
+				required
+			/>
 
-			<div class="space-y-2">
-				<Label for="confirmPassword">Confirm password</Label>
-				<Input
-					{...register.fields._confirmPassword.as('password')}
-					id="confirmPassword"
-					aria-invalid={(register.fields._confirmPassword.issues() ?? []).length > 0}
-					autocomplete="new-password"
-					required
-				/>
-				{#each register.fields._confirmPassword.issues() ?? [] as issue}
-					<p class="text-sm text-destructive">{issue.message}</p>
-				{/each}
-			</div>
+			<FormField
+				field={register.fields._confirmPassword}
+				label="Confirm password"
+				type="password"
+				id="confirmPassword"
+				autocomplete="new-password"
+				required
+			/>
 		</div>
 
 		<Button type="submit" class="w-full" disabled={!!register.pending}>

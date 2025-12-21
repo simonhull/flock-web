@@ -1,29 +1,66 @@
-<script lang="ts" generics="T extends Record<string, unknown>, U extends FormPath<T>">
-	import * as FormPrimitive from "formsnap";
-	import type { FormPath } from "sveltekit-superforms";
-	import { cn, type WithElementRef, type WithoutChildren } from "$lib/utils.js";
-	import type { HTMLAttributes } from "svelte/elements";
+<script lang="ts">
+	import type { HTMLInputTypeAttribute, HTMLInputAttributes } from 'svelte/elements'
+	import { Label } from '$lib/components/ui/label'
+	import { Input } from '$lib/components/ui/input'
+	import { cn } from '$lib/utils.js'
+
+	// Remote function field interface (experimental API)
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	interface RemoteField {
+		as: (...args: any[]) => Record<string, unknown>
+		issues: () => Array<{ path?: (string | number)[]; message: string }> | undefined
+	}
+
+	interface Props {
+		field: RemoteField
+		label: string
+		type?: HTMLInputTypeAttribute
+		hint?: string
+		id?: string
+		autocomplete?: HTMLInputAttributes['autocomplete']
+		required?: boolean
+		disabled?: boolean
+		placeholder?: string
+		class?: string
+	}
 
 	let {
-		ref = $bindable(null),
+		field,
+		label,
+		type = 'text',
+		hint,
+		id = crypto.randomUUID(),
+		autocomplete,
+		required,
+		disabled,
+		placeholder,
 		class: className,
-		form,
-		name,
-		children: childrenProp,
-		...restProps
-	}: FormPrimitive.FieldProps<T, U> &
-		WithoutChildren<WithElementRef<HTMLAttributes<HTMLDivElement>>> = $props();
+	}: Props = $props()
+
+	const issues = $derived(field.issues() ?? [])
+	const hasErrors = $derived(issues.length > 0)
 </script>
 
-<FormPrimitive.Field {form} {name}>
-	{#snippet children({ constraints, errors, tainted, value })}
-		<div
-			bind:this={ref}
-			data-slot="form-item"
-			class={cn("space-y-2", className)}
-			{...restProps}
-		>
-			{@render childrenProp?.({ constraints, errors, tainted, value: value as T[U] })}
+<div class={cn('space-y-2', className)}>
+	<Label for={id}>{label}</Label>
+	<Input
+		{...field.as(type)}
+		{id}
+		{type}
+		{autocomplete}
+		{required}
+		{disabled}
+		{placeholder}
+		aria-invalid={hasErrors}
+		aria-describedby={hasErrors ? `${id}-errors` : hint ? `${id}-hint` : undefined}
+	/>
+	{#if hasErrors}
+		<div id={`${id}-errors`} class="text-sm text-destructive">
+			{#each issues as issue (issue.message)}
+				<p>{issue.message}</p>
+			{/each}
 		</div>
-	{/snippet}
-</FormPrimitive.Field>
+	{:else if hint}
+		<p id={`${id}-hint`} class="text-sm text-muted-foreground">{hint}</p>
+	{/if}
+</div>

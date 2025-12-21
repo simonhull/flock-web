@@ -2,13 +2,13 @@ import { error, invalid, redirect } from '@sveltejs/kit'
 import { command, form, getRequestEvent, query } from '$app/server'
 import * as v from 'valibot'
 
-import { createAuth } from '$lib/server/auth'
+import { createAuthService } from '$lib/server/services/auth.service'
 
 // ============================================================================
 // Helpers
 // ============================================================================
 
-function getAuth() {
+function getAuthService() {
 	const event = getRequestEvent()
 	const db = event.platform?.env?.DB
 
@@ -16,9 +16,7 @@ function getAuth() {
 		error(503, 'Database not available')
 	}
 
-	return createAuth(db, {
-		baseURL: event.url.origin,
-	})
+	return createAuthService(db, event.url.origin)
 }
 
 // ============================================================================
@@ -31,12 +29,8 @@ export const getUser = query(async () => {
 
 	if (!db) return null
 
-	const auth = createAuth(db, { baseURL: event.url.origin })
-	const session = await auth.api.getSession({
-		headers: event.request.headers,
-	})
-
-	return session?.user ?? null
+	const authService = createAuthService(db, event.url.origin)
+	return authService.getSession(event.request.headers)
 })
 
 // ============================================================================
@@ -68,31 +62,18 @@ const RegisterSchema = v.pipe(
 )
 
 export const register = form(RegisterSchema, async (data, issue) => {
-	const auth = getAuth()
+	const authService = getAuthService()
 	const event = getRequestEvent()
 
-	try {
-		const response = await auth.api.signUpEmail({
-			body: {
-				email: data.email,
-				password: data._password,
-				name: data.email.split('@').at(0) ?? 'User',
-			},
-			headers: event.request.headers,
-		})
+	const result = await authService.signUp(
+		data.email,
+		data._password,
+		data.email.split('@').at(0) ?? 'User',
+		event.request.headers,
+	)
 
-		if (!response.user) {
-			invalid(issue.email('Registration failed. Please try again.'))
-		}
-	}
-	catch (err) {
-		const message = err instanceof Error ? err.message : ''
-
-		if (message.includes('UNIQUE constraint') || message.includes('already exists')) {
-			invalid(issue.email('An account with this email already exists'))
-		}
-
-		invalid(issue.email('Registration failed. Please try again.'))
+	if (!result.success) {
+		invalid(issue.email(result.message))
 	}
 
 	redirect(303, '/dashboard')
@@ -108,24 +89,17 @@ const LoginSchema = v.object({
 })
 
 export const login = form(LoginSchema, async (data, issue) => {
-	const auth = getAuth()
+	const authService = getAuthService()
 	const event = getRequestEvent()
 
-	try {
-		const response = await auth.api.signInEmail({
-			body: {
-				email: data.email,
-				password: data._password,
-			},
-			headers: event.request.headers,
-		})
+	const result = await authService.signIn(
+		data.email,
+		data._password,
+		event.request.headers,
+	)
 
-		if (!response.user) {
-			invalid(issue.email('Invalid email or password'))
-		}
-	}
-	catch {
-		invalid(issue.email('Invalid email or password'))
+	if (!result.success) {
+		invalid(issue.email(result.message))
 	}
 
 	redirect(303, '/dashboard')
@@ -136,15 +110,8 @@ export const login = form(LoginSchema, async (data, issue) => {
 // ============================================================================
 
 export const logout = command(async () => {
-	const auth = getAuth()
+	const authService = getAuthService()
 	const event = getRequestEvent()
 
-	try {
-		await auth.api.signOut({
-			headers: event.request.headers,
-		})
-	}
-	catch {
-		// Ignore sign out errors
-	}
+	await authService.signOut(event.request.headers)
 })
