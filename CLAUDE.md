@@ -72,21 +72,38 @@ $effect(() => {
 // src/lib/stores/user.svelte.ts
 import { createContext } from 'svelte';
 
-// Type-safe context — no manual casting
-export const userContext = createContext<User | null>('user');
+// Returns [get, set] tuple — type-safe, no manual casting
+export const [getUserContext, setUserContext] = createContext<User | null>();
 
-// Usage in components:
-// userContext.set(user)
-// const user = userContext.get()
+// In parent (e.g., layout):
+setUserContext(user);
+
+// In child components:
+const user = getUserContext();
 ```
 
 ### Attachments (Replace Actions)
 ```svelte
 <!-- ✅ Modern: Attachments -->
 <input {@attach autofocus} />
+<div {@attach clickOutside(() => isOpen = false)}>...</div>
 
 <!-- ❌ Legacy: Actions (use fromAction to migrate) -->
 <input use:autofocus />
+```
+
+See `$lib/attachments/` for reusable attachments: `autofocus`, `clickOutside`, `trapFocus`.
+
+### Eager State (Immediate UI Updates)
+```svelte
+<script>
+  let loading = $state(false);
+</script>
+
+<!-- $state.eager() updates UI immediately during async operations -->
+<button disabled={$state.eager(loading)}>
+  {$state.eager(loading) ? 'Saving...' : 'Save'}
+</button>
 ```
 
 ---
@@ -101,14 +118,15 @@ src/
 │   │   ├── services/     # Business logic lives HERE
 │   │   ├── permissions/  # Authorization engine
 │   │   └── auth/         # BetterAuth config
+│   ├── attachments/      # Reusable attachments (autofocus, clickOutside, etc.)
 │   ├── components/       # UI components
-│   ├── stores/           # Shared state (.svelte.ts)
+│   ├── stores/           # Typed contexts (.svelte.ts)
 │   ├── types/            # Domain types
 │   └── utils/            # Validation schemas, helpers
 ├── routes/
 │   ├── (marketing)/      # Public pages
 │   ├── (auth)/           # Login, register
-│   ├── (app)/            # Authenticated app
+│   ├── (app)/            # Authenticated app (user context set in layout)
 │   └── api/v1/           # Mobile REST API
 └── hooks.server.ts       # Auth middleware
 ```
