@@ -6,7 +6,6 @@
 
 	const user = getUserContext()
 
-	// State for logout loading indicator
 	let signingOut = $state(false)
 
 	async function handleLogout() {
@@ -24,9 +23,8 @@
 	<nav class="bg-card shadow">
 		<div class="mx-auto flex max-w-4xl items-center justify-between px-4 py-4">
 			<h1 class="text-xl font-bold text-foreground">Flock</h1>
-			<!-- $state.eager() wraps reads to update UI immediately during async operations -->
-			<Button variant="ghost" onclick={handleLogout} disabled={$state.eager(signingOut)}>
-				{$state.eager(signingOut) ? 'Signing out...' : 'Sign out'}
+			<Button variant="ghost" onclick={handleLogout} disabled={signingOut}>
+				{signingOut ? 'Signing out...' : 'Sign out'}
 			</Button>
 		</div>
 	</nav>

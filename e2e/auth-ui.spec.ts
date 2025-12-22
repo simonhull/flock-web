@@ -34,12 +34,14 @@ test.describe('Registration Page', () => {
 		await page.getByLabel('Email address').fill(email)
 		await page.getByLabel('Password', { exact: true }).fill('SecurePass123')
 		await page.getByLabel('Confirm password').fill('SecurePass123')
-		await page.getByRole('button', { name: 'Create account' }).click()
 
-		await expect(page).toHaveURL('/dashboard', { timeout: 15000 })
-		await expect(page.getByRole('heading', { name: 'Flock', exact: true })).toBeVisible()
-		await expect(page.getByText('Welcome')).toBeVisible()
-		await expect(page.getByText('signed in as')).toBeVisible()
+		await Promise.all([
+			page.waitForURL('**/dashboard', { timeout: 15000 }),
+			page.getByRole('button', { name: 'Create account' }).click(),
+		])
+		await expect(page.getByRole('heading', { name: 'Flock', exact: true })).toBeVisible({ timeout: 10000 })
+		await expect(page.getByText('Welcome')).toBeVisible({ timeout: 5000 })
+		await expect(page.getByText('signed in as')).toBeVisible({ timeout: 5000 })
 	})
 
 	test('form fields are focusable via keyboard', async ({ page }) => {

@@ -1,20 +1,27 @@
 <script lang="ts">
-	import type { HTMLInputTypeAttribute, HTMLInputAttributes } from 'svelte/elements'
+	import type { RemoteFormField, RemoteFormFieldValue } from '@sveltejs/kit'
+	import type { HTMLInputAttributes } from 'svelte/elements'
 	import { Label } from '$lib/components/ui/label'
 	import { Input } from '$lib/components/ui/input'
 	import { cn } from '$lib/utils.js'
 
-	// Remote function field interface (experimental API)
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	interface RemoteField {
-		as: (...args: any[]) => Record<string, unknown>
-		issues: () => Array<{ path?: (string | number)[]; message: string }> | undefined
-	}
+	// Subset of input types supported by this component
+	// For file/checkbox/radio, create specialized components
+	type TextInputType =
+		| 'text'
+		| 'email'
+		| 'password'
+		| 'search'
+		| 'tel'
+		| 'url'
+		| 'number'
+		| 'date'
+		| 'time'
 
 	interface Props {
-		field: RemoteField
+		field: RemoteFormField<RemoteFormFieldValue>
 		label: string
-		type?: HTMLInputTypeAttribute
+		type?: TextInputType
 		hint?: string
 		id?: string
 		autocomplete?: HTMLInputAttributes['autocomplete']

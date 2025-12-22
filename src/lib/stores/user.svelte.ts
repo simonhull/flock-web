@@ -1,4 +1,4 @@
-import { createContext } from 'svelte'
+import { getContext, setContext } from 'svelte'
 
 // User type matching App.Locals.user from app.d.ts
 export interface User {
@@ -11,13 +11,22 @@ export interface User {
 	updatedAt: Date
 }
 
+const USER_CONTEXT_KEY = Symbol('user-context')
+
 /**
- * Typed context for the current user session.
+ * Reactive user context using a getter function pattern.
+ * This allows the context to be set during initialization with a getter
+ * that returns the current reactive value.
  *
  * Usage:
- * - Parent: setUserContext(user)
- * - Child: const user = getUserContext()
- *
- * Throws if accessed before being set.
+ * - Parent: setUserContext(() => user) where user is $state
+ * - Child: const getUser = getUserContext(); getUser() // returns current user
  */
-export const [getUserContext, setUserContext] = createContext<User | null>()
+export function setUserContext(getter: () => User | null): void {
+	setContext(USER_CONTEXT_KEY, getter)
+}
+
+export function getUserContext(): User | null {
+	const getter = getContext<() => User | null>(USER_CONTEXT_KEY)
+	return getter()
+}

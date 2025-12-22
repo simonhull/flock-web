@@ -3,6 +3,7 @@ import { command, form, getRequestEvent, query } from '$app/server'
 import * as v from 'valibot'
 
 import { createAuthService } from '$lib/server/services/auth.service'
+import { safeRedirect } from '$lib/utils/url'
 
 // ============================================================================
 // Helpers
@@ -86,6 +87,7 @@ const LoginSchema = v.object({
 		v.email('Please enter a valid email'),
 	),
 	_password: v.string('Password is required'),
+	_redirectTo: v.string(),
 })
 
 export const login = form(LoginSchema, async (data, issue) => {
@@ -102,7 +104,7 @@ export const login = form(LoginSchema, async (data, issue) => {
 		invalid(issue.email(result.message))
 	}
 
-	redirect(303, '/dashboard')
+	redirect(303, safeRedirect(data._redirectTo))
 })
 
 // ============================================================================
