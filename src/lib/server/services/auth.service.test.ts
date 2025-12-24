@@ -1,5 +1,7 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 
+import type { EmailService } from '$lib/server/email'
+
 import { createAuthService, type AuthResult } from './auth.service'
 
 // Mock the auth module
@@ -15,6 +17,10 @@ describe('AuthService', () => {
 	const mockDb = {} as D1Database
 	const baseURL = 'http://localhost:5173'
 	const mockHeaders = new Headers()
+	const mockEmailService: EmailService = {
+		sendVerificationEmail: vi.fn(),
+		sendPasswordResetEmail: vi.fn(),
+	}
 
 	const mockUser = {
 		id: 'user_123',
@@ -37,7 +43,7 @@ describe('AuthService', () => {
 				api: { signInEmail: mockSignInEmail },
 			} as unknown as ReturnType<typeof createAuth>)
 
-			const service = createAuthService(mockDb, baseURL)
+			const service = createAuthService(mockDb, baseURL, mockEmailService)
 			const result = await service.signIn('test@example.com', 'password123', mockHeaders)
 
 			expect(result.success).toBe(true)
@@ -56,7 +62,7 @@ describe('AuthService', () => {
 				api: { signInEmail: mockSignInEmail },
 			} as unknown as ReturnType<typeof createAuth>)
 
-			const service = createAuthService(mockDb, baseURL)
+			const service = createAuthService(mockDb, baseURL, mockEmailService)
 			const result = await service.signIn('test@example.com', 'wrongpassword', mockHeaders)
 
 			expect(result.success).toBe(false)
@@ -72,7 +78,7 @@ describe('AuthService', () => {
 				api: { signInEmail: mockSignInEmail },
 			} as unknown as ReturnType<typeof createAuth>)
 
-			const service = createAuthService(mockDb, baseURL)
+			const service = createAuthService(mockDb, baseURL, mockEmailService)
 			const result = await service.signIn('test@example.com', 'password123', mockHeaders)
 
 			expect(result.success).toBe(false)
@@ -89,7 +95,7 @@ describe('AuthService', () => {
 				api: { signUpEmail: mockSignUpEmail },
 			} as unknown as ReturnType<typeof createAuth>)
 
-			const service = createAuthService(mockDb, baseURL)
+			const service = createAuthService(mockDb, baseURL, mockEmailService)
 			const result = await service.signUp('test@example.com', 'password123', 'Test User', mockHeaders)
 
 			expect(result.success).toBe(true)
@@ -108,7 +114,7 @@ describe('AuthService', () => {
 				api: { signUpEmail: mockSignUpEmail },
 			} as unknown as ReturnType<typeof createAuth>)
 
-			const service = createAuthService(mockDb, baseURL)
+			const service = createAuthService(mockDb, baseURL, mockEmailService)
 			const result = await service.signUp('test@example.com', 'password123', 'Test User', mockHeaders)
 
 			expect(result.success).toBe(false)
@@ -124,7 +130,7 @@ describe('AuthService', () => {
 				api: { signUpEmail: mockSignUpEmail },
 			} as unknown as ReturnType<typeof createAuth>)
 
-			const service = createAuthService(mockDb, baseURL)
+			const service = createAuthService(mockDb, baseURL, mockEmailService)
 			const result = await service.signUp('test@example.com', 'password123', 'Test User', mockHeaders)
 
 			expect(result.success).toBe(false)
@@ -139,7 +145,7 @@ describe('AuthService', () => {
 				api: { signUpEmail: mockSignUpEmail },
 			} as unknown as ReturnType<typeof createAuth>)
 
-			const service = createAuthService(mockDb, baseURL)
+			const service = createAuthService(mockDb, baseURL, mockEmailService)
 			const result = await service.signUp('test@example.com', 'password123', 'Test User', mockHeaders)
 
 			expect(result.success).toBe(false)
@@ -156,7 +162,7 @@ describe('AuthService', () => {
 				api: { signOut: mockSignOut },
 			} as unknown as ReturnType<typeof createAuth>)
 
-			const service = createAuthService(mockDb, baseURL)
+			const service = createAuthService(mockDb, baseURL, mockEmailService)
 			await service.signOut(mockHeaders)
 
 			expect(mockSignOut).toHaveBeenCalledWith({ headers: mockHeaders })
@@ -168,7 +174,7 @@ describe('AuthService', () => {
 				api: { signOut: mockSignOut },
 			} as unknown as ReturnType<typeof createAuth>)
 
-			const service = createAuthService(mockDb, baseURL)
+			const service = createAuthService(mockDb, baseURL, mockEmailService)
 			// Should not throw
 			await expect(service.signOut(mockHeaders)).resolves.toBeUndefined()
 		})
@@ -181,7 +187,7 @@ describe('AuthService', () => {
 				api: { getSession: mockGetSession },
 			} as unknown as ReturnType<typeof createAuth>)
 
-			const service = createAuthService(mockDb, baseURL)
+			const service = createAuthService(mockDb, baseURL, mockEmailService)
 			const result = await service.getSession(mockHeaders)
 
 			expect(result).toEqual(mockUser)
@@ -194,7 +200,7 @@ describe('AuthService', () => {
 				api: { getSession: mockGetSession },
 			} as unknown as ReturnType<typeof createAuth>)
 
-			const service = createAuthService(mockDb, baseURL)
+			const service = createAuthService(mockDb, baseURL, mockEmailService)
 			const result = await service.getSession(mockHeaders)
 
 			expect(result).toBeNull()
@@ -206,7 +212,7 @@ describe('AuthService', () => {
 				api: { getSession: mockGetSession },
 			} as unknown as ReturnType<typeof createAuth>)
 
-			const service = createAuthService(mockDb, baseURL)
+			const service = createAuthService(mockDb, baseURL, mockEmailService)
 			const result = await service.getSession(mockHeaders)
 
 			expect(result).toBeNull()

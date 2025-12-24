@@ -1,4 +1,7 @@
 import type { User } from 'better-auth'
+import { APIError } from 'better-auth/api'
+
+import type { EmailService } from '$lib/server/email'
 
 import { createAuth } from '../auth'
 
@@ -6,7 +9,7 @@ import { createAuth } from '../auth'
 // Types
 // ============================================================================
 
-export type AuthErrorCode = 'INVALID_CREDENTIALS' | 'USER_EXISTS' | 'UNKNOWN'
+export type AuthErrorCode = 'INVALID_CREDENTIALS' | 'USER_EXISTS' | 'EMAIL_NOT_VERIFIED' | 'UNKNOWN'
 
 export type AuthResult<T> =
 	| { success: true; data: T }
@@ -26,6 +29,7 @@ export interface AuthService {
 const ERROR_MESSAGES: Record<AuthErrorCode, string> = {
 	INVALID_CREDENTIALS: 'Invalid email or password',
 	USER_EXISTS: 'An account with this email already exists',
+	EMAIL_NOT_VERIFIED: 'Please verify your email address',
 	UNKNOWN: 'Something went wrong. Please try again.',
 }
 
@@ -33,8 +37,12 @@ const ERROR_MESSAGES: Record<AuthErrorCode, string> = {
 // Service Factory
 // ============================================================================
 
-export function createAuthService(db: D1Database, baseURL: string): AuthService {
-	const auth = createAuth(db, { baseURL })
+export function createAuthService(
+	db: D1Database,
+	baseURL: string,
+	emailService: EmailService,
+): AuthService {
+	const auth = createAuth(db, { baseURL, emailService })
 
 	return {
 		async signIn(email, password, headers) {
@@ -54,7 +62,28 @@ export function createAuthService(db: D1Database, baseURL: string): AuthService 
 
 				return { success: true, data: response.user }
 			}
-			catch {
+			catch (err) {
+				// BetterAuth returns APIError with status 403 for unverified email
+				if (err instanceof APIError) {
+					if (err.status === 403 || err.message?.toLowerCase().includes('verify')) {
+						return {
+							success: false,
+							code: 'EMAIL_NOT_VERIFIED',
+							message: ERROR_MESSAGES.EMAIL_NOT_VERIFIED,
+						}
+					}
+				}
+
+				// Also check for non-APIError cases
+				const message = err instanceof Error ? err.message : ''
+				if (message.toLowerCase().includes('verify') || message.toLowerCase().includes('verification')) {
+					return {
+						success: false,
+						code: 'EMAIL_NOT_VERIFIED',
+						message: ERROR_MESSAGES.EMAIL_NOT_VERIFIED,
+					}
+				}
+
 				return {
 					success: false,
 					code: 'INVALID_CREDENTIALS',

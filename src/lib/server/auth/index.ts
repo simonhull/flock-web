@@ -1,10 +1,11 @@
-// Import getRequestEvent for cookie handling in form actions
 import { dev } from '$app/environment'
 import { getRequestEvent } from '$app/server'
 import { betterAuth } from 'better-auth'
 import { drizzleAdapter } from 'better-auth/adapters/drizzle'
 import { sveltekitCookies } from 'better-auth/svelte-kit'
 import { drizzle } from 'drizzle-orm/d1'
+
+import type { EmailService } from '$lib/server/email'
 
 import * as schema from '../db/schema'
 
@@ -15,7 +16,12 @@ const DEV_ORIGINS = [
 	'http://localhost:8788',
 ]
 
-export function createAuth(d1: D1Database, options: { baseURL: string }) {
+export interface AuthOptions {
+	baseURL: string
+	emailService: EmailService
+}
+
+export function createAuth(d1: D1Database, options: AuthOptions) {
 	const db = drizzle(d1, { schema })
 
 	// Trust the current origin + dev origins in development
@@ -31,7 +37,19 @@ export function createAuth(d1: D1Database, options: { baseURL: string }) {
 
 		emailAndPassword: {
 			enabled: true,
-			requireEmailVerification: false, // Enable in TASK-001f
+			requireEmailVerification: true,
+		},
+
+		emailVerification: {
+			sendOnSignUp: true,
+			autoSignInAfterVerification: true,
+			sendVerificationEmail: async ({ user, url }) => {
+				await options.emailService.sendVerificationEmail({
+					to: user.email,
+					name: user.name ?? user.email.split('@')[0],
+					verificationUrl: url,
+				})
+			},
 		},
 
 		session: {

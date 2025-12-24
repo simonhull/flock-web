@@ -6,7 +6,7 @@ test.describe('Protected Routes', () => {
 		await expect(page).toHaveURL(/\/login\?redirectTo=%2Fdashboard/)
 	})
 
-	test('redirects back to original destination after login', async ({ page }) => {
+	test('registration redirects to verify-email page', async ({ page }) => {
 		const email = `e2e-redirect-${Date.now()}@example.com`
 
 		// Try to access dashboard (should redirect to login)
@@ -22,73 +22,52 @@ test.describe('Protected Routes', () => {
 		await page.getByLabel('Confirm password').fill('SecurePass123')
 		await page.getByRole('button', { name: 'Create account' }).click()
 
-		// Should land on dashboard (the original destination)
-		await expect(page).toHaveURL('/dashboard', { timeout: 15000 })
+		// With email verification enabled, should go to verify-email page
+		await expect(page).toHaveURL('/verify-email', { timeout: 15000 })
 	})
 
-	test('login with redirectTo sends user to original destination', async ({ page }) => {
+	test('unverified user cannot access dashboard', async ({ page }) => {
 		const email = `e2e-login-redirect-${Date.now()}@example.com`
 
-		// First, register to create an account
+		// Register (creates unverified user)
 		await page.goto('/register')
 		await page.getByLabel('Email address').fill(email)
 		await page.getByLabel('Password', { exact: true }).fill('SecurePass123')
 		await page.getByLabel('Confirm password').fill('SecurePass123')
 		await page.getByRole('button', { name: 'Create account' }).click()
-		await expect(page).toHaveURL('/dashboard', { timeout: 15000 })
 
-		// Logout
-		await Promise.all([
-			page.waitForURL('/login', { timeout: 15000 }),
-			page.getByRole('button', { name: 'Sign out' }).click(),
-		])
+		// Should redirect to verify-email
+		await expect(page).toHaveURL('/verify-email', { timeout: 15000 })
 
-		// Try to access dashboard directly (should redirect to login with redirectTo)
+		// Try to access dashboard directly
 		await page.goto('/dashboard')
-		await expect(page).toHaveURL(/\/login\?redirectTo=%2Fdashboard/)
 
-		// Login
-		await page.getByLabel('Email address').fill(email)
-		await page.getByLabel('Password').fill('SecurePass123')
-		await page.getByRole('button', { name: 'Sign in' }).click()
-
-		// Should redirect back to dashboard
-		await expect(page).toHaveURL('/dashboard', { timeout: 15000 })
+		// Should redirect to login or stay on verify-email (unverified users can't access dashboard)
+		await expect(page).not.toHaveURL('/dashboard', { timeout: 5000 })
 	})
 
-	test('authenticated user bounces from login to dashboard', async ({ page }) => {
-		const email = `e2e-bounce-${Date.now()}@example.com`
+	// Note: With BetterAuth's requireEmailVerification: true, no session is created
+	// on signup until the email is verified. Therefore, "authenticated but unverified"
+	// users don't exist - they're simply unauthenticated until they verify and sign in.
+	// The following tests verify this behavior:
 
-		// Register (auto-signs in)
+	test('after registration user is not authenticated (no session until verified)', async ({ page }) => {
+		const email = `e2e-no-session-${Date.now()}@example.com`
+
+		// Register - redirects to verify-email
 		await page.goto('/register')
 		await page.getByLabel('Email address').fill(email)
 		await page.getByLabel('Password', { exact: true }).fill('SecurePass123')
 		await page.getByLabel('Confirm password').fill('SecurePass123')
 		await page.getByRole('button', { name: 'Create account' }).click()
-		await expect(page).toHaveURL('/dashboard', { timeout: 15000 })
+		await expect(page).toHaveURL('/verify-email', { timeout: 15000 })
 
-		// Try to visit login page while authenticated
+		// Try to visit login page - should stay on login (user is not authenticated)
 		await page.goto('/login')
+		await expect(page).toHaveURL('/login')
 
-		// Should redirect back to dashboard
-		await expect(page).toHaveURL('/dashboard', { timeout: 5000 })
-	})
-
-	test('authenticated user bounces from register to dashboard', async ({ page }) => {
-		const email = `e2e-bounce-reg-${Date.now()}@example.com`
-
-		// Register (auto-signs in)
+		// Try to visit register page - should stay on register (user is not authenticated)
 		await page.goto('/register')
-		await page.getByLabel('Email address').fill(email)
-		await page.getByLabel('Password', { exact: true }).fill('SecurePass123')
-		await page.getByLabel('Confirm password').fill('SecurePass123')
-		await page.getByRole('button', { name: 'Create account' }).click()
-		await expect(page).toHaveURL('/dashboard', { timeout: 15000 })
-
-		// Try to visit register page while authenticated
-		await page.goto('/register')
-
-		// Should redirect back to dashboard
-		await expect(page).toHaveURL('/dashboard', { timeout: 5000 })
+		await expect(page).toHaveURL('/register')
 	})
 })

@@ -1,5 +1,8 @@
 {
 	"name": "flock",
+	"pnpm": {
+		"onlyBuiltDependencies": ["better-sqlite3"]
+	},
 	"type": "module",
 	"version": "0.0.1",
 	"private": true,
@@ -25,6 +28,7 @@
 	"dependencies": {
 		"@sveltejs/adapter-cloudflare": "^7.2.4",
 		"better-auth": "^1.4.7",
+		"better-svelte-email": "^1.1.0",
 		"lucide-svelte": "^0.562.0",
 		"valibot": "^1.2.0"
 	},

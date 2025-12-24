@@ -67,30 +67,24 @@ test.describe('Authentication API', () => {
 		expect(second.ok()).toBe(false)
 	})
 
-	test('can sign in with correct credentials', async ({ request }) => {
+	test('cannot sign in with unverified email', async ({ request }) => {
 		const email = `signin-${Date.now()}@example.com`
 
-		// Create user first
+		// Create user first (unverified)
 		const signupResponse = await request.post('/api/auth/sign-up/email', {
 			headers: { origin: ORIGIN },
 			data: { email, password: testPassword, name: 'Sign In Test' },
 		})
 		expect(signupResponse.ok()).toBe(true)
 
-		// Sign in (even if already signed in from signup - should work)
+		// Sign in attempt should fail because email is not verified
 		const response = await request.post('/api/auth/sign-in/email', {
 			headers: { origin: ORIGIN },
 			data: { email, password: testPassword },
 		})
 
-		expect(response.ok()).toBe(true)
-
-		const body = await response.json()
-		expect(body.user.email).toBe(email)
-
-		// Should have session cookie
-		const cookies = response.headers()['set-cookie']
-		expect(cookies).toBeDefined()
+		// With requireEmailVerification: true, sign-in should fail for unverified users
+		expect(response.ok()).toBe(false)
 	})
 
 	test('cannot sign in with wrong password', async ({ request }) => {
@@ -109,10 +103,10 @@ test.describe('Authentication API', () => {
 		expect(response.ok()).toBe(false)
 	})
 
-	test('can check session status after signup', async ({ request }) => {
+	test('signup with requireEmailVerification does not create active session', async ({ request }) => {
 		const email = `session-${Date.now()}@example.com`
 
-		// Sign up (creates session)
+		// Sign up (with requireEmailVerification: true, no session is created until verified)
 		const signupResponse = await request.post('/api/auth/sign-up/email', {
 			headers: { origin: ORIGIN },
 			data: { email, password: testPassword, name: 'Session Test' },
@@ -122,7 +116,8 @@ test.describe('Authentication API', () => {
 		// Parse cookies from signup response
 		const cookies = parseCookies(signupResponse.headers()['set-cookie'])
 
-		// Check session with cookies
+		// Check session with cookies - should NOT be authenticated
+		// BetterAuth with requireEmailVerification: true doesn't create sessions until email is verified
 		const sessionResponse = await request.get('/api/auth/test', {
 			headers: { cookie: cookies },
 		})
@@ -130,8 +125,7 @@ test.describe('Authentication API', () => {
 		expect(sessionResponse.ok()).toBe(true)
 
 		const body = await sessionResponse.json()
-		expect(body.authenticated).toBe(true)
-		expect(body.user.email).toBe(email)
+		expect(body.authenticated).toBe(false)
 	})
 
 	test('can sign out', async ({ request }) => {
@@ -177,5 +171,41 @@ test.describe('Authentication API', () => {
 		const body = await response.json()
 		expect(body.authenticated).toBe(false)
 		expect(body.message).toBe('No active session')
+	})
+})
+
+test.describe('Email Verification', () => {
+	test('register redirects to verify-email page', async ({ page }) => {
+		const email = `verify-${Date.now()}@example.com`
+
+		await page.goto('/register')
+		await page.fill('input[id="email"]', email)
+		await page.fill('input[id="password"]', 'SecurePass123!')
+		await page.fill('input[id="confirmPassword"]', 'SecurePass123!')
+		await page.click('button[type="submit"]')
+
+		// Should redirect to verify-email page (not dashboard)
+		await expect(page).toHaveURL('/verify-email')
+		await expect(page.locator('text=Check Your Email')).toBeVisible()
+	})
+
+	test('verify-email page shows check email message without token', async ({ page }) => {
+		await page.goto('/verify-email')
+		await expect(page.locator('text=Check Your Email')).toBeVisible()
+		await expect(page.locator('text=Resend verification email')).toBeVisible()
+	})
+
+	test('verify-email with invalid token shows error', async ({ page }) => {
+		await page.goto('/verify-email?token=invalid-token-12345')
+
+		// Should show error after attempting verification
+		await expect(page.locator('text=Verification Failed')).toBeVisible({ timeout: 10000 })
+	})
+
+	test('verify-email page is accessible without authentication', async ({ page }) => {
+		// Should not redirect to login
+		const response = await page.goto('/verify-email')
+		expect(response?.url()).toContain('/verify-email')
+		expect(response?.url()).not.toContain('/login')
 	})
 })

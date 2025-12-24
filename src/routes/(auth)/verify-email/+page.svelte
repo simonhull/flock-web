@@ -1,0 +1,190 @@
+<script lang="ts">
+	import { goto } from '$app/navigation'
+	import { page } from '$app/state'
+	import { auth } from '$lib/auth/client'
+	import { AuthLayout } from '$lib/components/auth'
+	import { Alert, AlertDescription, Button, Link } from '$lib/components/ui'
+	import LoaderCircle from 'lucide-svelte/icons/loader-circle'
+	import CheckCircle from 'lucide-svelte/icons/check-circle'
+	import XCircle from 'lucide-svelte/icons/x-circle'
+	import Mail from 'lucide-svelte/icons/mail'
+
+	type Status = 'loading' | 'success' | 'error' | 'no-token'
+
+	let status = $state<Status>('loading')
+	let errorMessage = $state('')
+	let isResending = $state(false)
+	let resendSuccess = $state(false)
+	let resendError = $state('')
+	let userEmail = $state<string | null>(null)
+
+	const token = $derived(page.url.searchParams.get('token'))
+
+	$effect(() => {
+		if (!token) {
+			status = 'no-token'
+			// Try to get email from session for resend functionality
+			auth.getSession().then((session) => {
+				if (session.data?.user?.email) {
+					userEmail = session.data.user.email
+				}
+			})
+			return
+		}
+
+		verifyToken(token)
+	})
+
+	async function verifyToken(tokenValue: string) {
+		try {
+			const result = await auth.verifyEmail({ query: { token: tokenValue } })
+
+			if (result.error) {
+				status = 'error'
+				errorMessage = result.error.message ?? 'Verification failed'
+				// Try to get email from session for resend
+				const session = await auth.getSession()
+				if (session.data?.user?.email) {
+					userEmail = session.data.user.email
+				}
+				return
+			}
+
+			status = 'success'
+			setTimeout(() => goto('/dashboard'), 2000)
+		}
+		catch (err) {
+			status = 'error'
+			errorMessage = err instanceof Error ? err.message : 'Something went wrong'
+		}
+	}
+
+	async function resendVerification() {
+		if (!userEmail) {
+			resendError = 'Please sign in to resend the verification email'
+			return
+		}
+
+		isResending = true
+		resendSuccess = false
+		resendError = ''
+
+		try {
+			await auth.sendVerificationEmail({
+				email: userEmail,
+				callbackURL: '/dashboard',
+			})
+			resendSuccess = true
+			setTimeout(() => (resendSuccess = false), 5000)
+		}
+		catch (err) {
+			console.error('Failed to resend:', err)
+			resendError = 'Failed to send verification email. Please try again.'
+		}
+		finally {
+			isResending = false
+		}
+	}
+</script>
+
+<svelte:head>
+	<title>Verify Email | Flock</title>
+</svelte:head>
+
+{#if status === 'loading'}
+	<AuthLayout title="Verifying..." subtitle="Please wait while we verify your email">
+		<div class="flex justify-center py-8">
+			<LoaderCircle class="h-12 w-12 animate-spin text-primary" />
+		</div>
+	</AuthLayout>
+{:else if status === 'success'}
+	<AuthLayout title="Email Verified!" subtitle="Your email has been verified successfully">
+		<div class="flex flex-col items-center gap-4 py-8">
+			<CheckCircle class="h-16 w-16 text-green-500" />
+			<p class="text-muted-foreground">Redirecting to dashboard...</p>
+		</div>
+	</AuthLayout>
+{:else if status === 'error'}
+	<AuthLayout title="Verification Failed" subtitle="We couldn't verify your email">
+		<div class="flex flex-col items-center gap-4 py-8">
+			<XCircle class="h-16 w-16 text-destructive" />
+			<Alert variant="destructive">
+				<AlertDescription>{errorMessage}</AlertDescription>
+			</Alert>
+
+			{#if resendError}
+				<Alert variant="destructive">
+					<AlertDescription>{resendError}</AlertDescription>
+				</Alert>
+			{/if}
+
+			{#if resendSuccess}
+				<Alert>
+					<AlertDescription>Verification email sent! Check your inbox.</AlertDescription>
+				</Alert>
+			{/if}
+
+			<Button onclick={resendVerification} disabled={isResending || !userEmail}>
+				{#if isResending}
+					<LoaderCircle class="mr-2 h-4 w-4 animate-spin" />
+					Sending...
+				{:else}
+					Resend verification email
+				{/if}
+			</Button>
+
+			{#if !userEmail}
+				<p class="text-sm text-muted-foreground">
+					<Link href="/login">Sign in</Link> to resend the verification email
+				</p>
+			{/if}
+		</div>
+
+		{#snippet footer()}
+			<Link href="/login">Back to login</Link>
+		{/snippet}
+	</AuthLayout>
+{:else}
+	<AuthLayout title="Check Your Email" subtitle="We've sent a verification link to your inbox">
+		<div class="flex flex-col items-center gap-6 py-8">
+			<div class="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
+				<Mail class="h-8 w-8 text-primary" />
+			</div>
+			<p class="text-center text-muted-foreground">
+				Click the link in your email to verify your account.
+				Check your spam folder if you don't see it.
+			</p>
+
+			{#if resendError}
+				<Alert variant="destructive">
+					<AlertDescription>{resendError}</AlertDescription>
+				</Alert>
+			{/if}
+
+			{#if resendSuccess}
+				<Alert>
+					<AlertDescription>Verification email sent! Check your inbox.</AlertDescription>
+				</Alert>
+			{/if}
+
+			<Button variant="outline" onclick={resendVerification} disabled={isResending || !userEmail}>
+				{#if isResending}
+					<LoaderCircle class="mr-2 h-4 w-4 animate-spin" />
+					Sending...
+				{:else}
+					Resend verification email
+				{/if}
+			</Button>
+
+			{#if !userEmail}
+				<p class="text-sm text-muted-foreground">
+					<Link href="/login">Sign in</Link> to resend the verification email
+				</p>
+			{/if}
+		</div>
+
+		{#snippet footer()}
+			Already verified? <Link href="/login">Sign in</Link>
+		{/snippet}
+	</AuthLayout>
+{/if}

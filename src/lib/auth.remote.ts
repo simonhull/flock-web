@@ -2,6 +2,7 @@ import { error, invalid, redirect } from '@sveltejs/kit'
 import { command, form, getRequestEvent, query } from '$app/server'
 import * as v from 'valibot'
 
+import { createEmailService } from '$lib/server/email'
 import { createAuthService } from '$lib/server/services/auth.service'
 import { safeRedirect } from '$lib/utils/url'
 
@@ -17,7 +18,16 @@ function getAuthService() {
 		error(503, 'Database not available')
 	}
 
-	return createAuthService(db, event.url.origin)
+	const emailService = createEmailService({
+		provider: (event.platform?.env?.EMAIL_PROVIDER as 'console' | 'zepto') ?? 'console',
+		zepto: {
+			token: event.platform?.env?.ZEPTO_MAIL_TOKEN ?? '',
+			from: event.platform?.env?.ZEPTO_MAIL_FROM ?? 'noreply@myflock.app',
+			fromName: event.platform?.env?.ZEPTO_MAIL_FROM_NAME ?? 'Flock',
+		},
+	})
+
+	return createAuthService(db, event.url.origin, emailService)
 }
 
 // ============================================================================
@@ -30,7 +40,16 @@ export const getUser = query(async () => {
 
 	if (!db) return null
 
-	const authService = createAuthService(db, event.url.origin)
+	const emailService = createEmailService({
+		provider: (event.platform?.env?.EMAIL_PROVIDER as 'console' | 'zepto') ?? 'console',
+		zepto: {
+			token: event.platform?.env?.ZEPTO_MAIL_TOKEN ?? '',
+			from: event.platform?.env?.ZEPTO_MAIL_FROM ?? 'noreply@myflock.app',
+			fromName: event.platform?.env?.ZEPTO_MAIL_FROM_NAME ?? 'Flock',
+		},
+	})
+
+	const authService = createAuthService(db, event.url.origin, emailService)
 	return authService.getSession(event.request.headers)
 })
 
@@ -77,7 +96,8 @@ export const register = form(RegisterSchema, async (data, issue) => {
 		invalid(issue.email(result.message))
 	}
 
-	redirect(303, '/dashboard')
+	// Redirect to verify-email page instead of dashboard
+	redirect(303, '/verify-email')
 })
 
 const LoginSchema = v.object({
@@ -101,6 +121,10 @@ export const login = form(LoginSchema, async (data, issue) => {
 	)
 
 	if (!result.success) {
+		// Show specific message for unverified email
+		if (result.code === 'EMAIL_NOT_VERIFIED') {
+			redirect(303, '/verify-email')
+		}
 		invalid(issue.email(result.message))
 	}
 

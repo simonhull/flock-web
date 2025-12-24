@@ -27,7 +27,7 @@ test.describe('Registration Page', () => {
 		await expect(page.getByText('match', { exact: false })).toBeVisible({ timeout: 10000 })
 	})
 
-	test('successful registration redirects to dashboard', async ({ page }) => {
+	test('successful registration redirects to verify-email page', async ({ page }) => {
 		const email = `e2e-register-${Date.now()}@example.com`
 
 		await page.goto('/register')
@@ -36,12 +36,11 @@ test.describe('Registration Page', () => {
 		await page.getByLabel('Confirm password').fill('SecurePass123')
 
 		await Promise.all([
-			page.waitForURL('**/dashboard', { timeout: 15000 }),
+			page.waitForURL('**/verify-email', { timeout: 15000 }),
 			page.getByRole('button', { name: 'Create account' }).click(),
 		])
-		await expect(page.getByRole('heading', { name: 'Flock', exact: true })).toBeVisible({ timeout: 10000 })
-		await expect(page.getByText('Welcome')).toBeVisible({ timeout: 5000 })
-		await expect(page.getByText('signed in as')).toBeVisible({ timeout: 5000 })
+		await expect(page.getByText('Check Your Email')).toBeVisible({ timeout: 10000 })
+		await expect(page.getByText('verification link')).toBeVisible({ timeout: 5000 })
 	})
 
 	test('form fields are focusable via keyboard', async ({ page }) => {
@@ -76,28 +75,27 @@ test.describe('Login Page', () => {
 		await expect(registerLink).toHaveAttribute('href', '/register')
 	})
 
-	test('full auth flow: register, logout, login', async ({ page }) => {
+	test('unverified user cannot sign in', async ({ page }) => {
 		const email = `e2e-flow-${Date.now()}@example.com`
 
-		// Register
+		// Register - redirects to verify-email
 		await page.goto('/register')
 		await page.getByLabel('Email address').fill(email)
 		await page.getByLabel('Password', { exact: true }).fill('SecurePass123')
 		await page.getByLabel('Confirm password').fill('SecurePass123')
 		await page.getByRole('button', { name: 'Create account' }).click()
-		await expect(page).toHaveURL('/dashboard', { timeout: 15000 })
+		await expect(page).toHaveURL('/verify-email', { timeout: 15000 })
 
-		// Logout
-		await Promise.all([
-			page.waitForURL('/login', { timeout: 15000 }),
-			page.getByRole('button', { name: 'Sign out' }).click()
-		])
-
-		// Login
+		// Navigate to login and try to sign in with unverified account
+		await page.goto('/login')
 		await page.getByLabel('Email address').fill(email)
 		await page.getByLabel('Password').fill('SecurePass123')
 		await page.getByRole('button', { name: 'Sign in' }).click()
-		await expect(page).toHaveURL('/dashboard', { timeout: 15000 })
+
+		// BetterAuth with requireEmailVerification blocks unverified users from signing in
+		// The user stays on login page with an error (prevents account enumeration)
+		await expect(page).toHaveURL('/login')
+		await expect(page.getByText(/invalid|error/i)).toBeVisible({ timeout: 5000 })
 	})
 
 	test('form fields are focusable via keyboard', async ({ page }) => {
