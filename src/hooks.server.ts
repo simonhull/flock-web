@@ -4,7 +4,7 @@ import { createEmailService } from '$lib/server/email'
 import { createAuthService } from '$lib/server/services/auth.service'
 
 // Routes that don't require authentication
-const publicRoutes = ['/login', '/register', '/verify-email', '/api/auth', '/api/health']
+const publicRoutes = ['/login', '/register', '/verify-email', '/forgot-password', '/reset-password', '/api/auth', '/api/health']
 
 // Check if a path is public
 function isPublicRoute(path: string): boolean {

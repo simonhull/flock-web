@@ -131,6 +131,24 @@ export const login = form(LoginSchema, async (data, issue) => {
 	redirect(303, safeRedirect(data._redirectTo))
 })
 
+const ForgotPasswordSchema = v.object({
+	email: v.pipe(
+		v.string('Email is required'),
+		v.trim(),
+		v.email('Please enter a valid email'),
+	),
+})
+
+export const forgotPassword = form(ForgotPasswordSchema, async (data) => {
+	const authService = getAuthService()
+	const event = getRequestEvent()
+
+	// Always succeed (security: don't reveal if email exists)
+	await authService.requestPasswordReset(data.email, `${event.url.origin}/reset-password`)
+
+	redirect(303, '/forgot-password?sent=true')
+})
+
 // ============================================================================
 // Commands
 // ============================================================================

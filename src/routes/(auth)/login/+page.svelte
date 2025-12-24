@@ -50,6 +50,8 @@
 	</form>
 
 	{#snippet footer()}
+		<Link href="/forgot-password">Forgot your password?</Link>
+		<span class="mx-2">&middot;</span>
 		Don't have an account? <Link href="/register">Create one</Link>
 	{/snippet}
 </AuthLayout>

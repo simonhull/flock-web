@@ -20,6 +20,7 @@ export interface AuthService {
 	signUp(email: string, password: string, name: string, headers: Headers): Promise<AuthResult<User>>
 	signOut(headers: Headers): Promise<void>
 	getSession(headers: Headers): Promise<User | null>
+	requestPasswordReset(email: string, redirectTo: string): Promise<void>
 }
 
 // ============================================================================
@@ -144,6 +145,20 @@ export function createAuthService(
 			}
 			catch {
 				return null
+			}
+		},
+
+		async requestPasswordReset(email, redirectTo) {
+			try {
+				// Make direct call to BetterAuth password reset endpoint
+				await fetch(`${baseURL}/api/auth/forget-password`, {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ email, redirectTo }),
+				})
+			}
+			catch {
+				// Silently succeed even if email doesn't exist (security: don't reveal if email exists)
 			}
 		},
 	}

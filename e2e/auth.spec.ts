@@ -209,3 +209,81 @@ test.describe('Email Verification', () => {
 		expect(response?.url()).not.toContain('/login')
 	})
 })
+
+test.describe('Password Reset', () => {
+	test('forgot password page renders', async ({ page }) => {
+		await page.goto('/forgot-password')
+		await expect(page.getByRole('heading', { name: /forgot your password/i })).toBeVisible()
+		await expect(page.getByLabel('Email address')).toBeVisible()
+		await expect(page.getByRole('button', { name: /send reset link/i })).toBeVisible()
+	})
+
+	test('forgot password shows success after submit', async ({ page }) => {
+		await page.goto('/forgot-password')
+		await page.getByLabel('Email address').fill('test@example.com')
+		await page.getByRole('button', { name: /send reset link/i }).click()
+
+		// Should show success message (even for non-existent emails for security)
+		await expect(page.getByText('Check Your Email')).toBeVisible({ timeout: 10000 })
+	})
+
+	test('forgot password validates email', async ({ page }) => {
+		await page.goto('/forgot-password')
+		await page.getByLabel('Email address').fill('not-an-email')
+		await page.getByRole('button', { name: /send reset link/i }).click()
+
+		// Form should stay on page (not redirect to success) for invalid email
+		// Wait a moment for server response
+		await page.waitForTimeout(1000)
+		// Should still show the form heading (not success page)
+		await expect(page.getByRole('heading', { name: /forgot your password/i })).toBeVisible()
+		// The button should still be visible (form didn't redirect)
+		await expect(page.getByRole('button', { name: /send reset link/i })).toBeVisible()
+	})
+
+	test('reset password without token shows error', async ({ page }) => {
+		await page.goto('/reset-password')
+		await expect(page.getByText('Invalid Reset Link')).toBeVisible()
+		await expect(page.getByRole('link', { name: /request new link/i })).toBeVisible()
+	})
+
+	test('reset password with token shows form', async ({ page }) => {
+		await page.goto('/reset-password?token=some-test-token')
+		await expect(page.getByRole('heading', { name: /reset your password/i })).toBeVisible()
+		await expect(page.getByLabel('New password', { exact: true })).toBeVisible()
+		await expect(page.getByLabel('Confirm new password', { exact: true })).toBeVisible()
+	})
+
+	test('reset password validates matching passwords', async ({ page }) => {
+		await page.goto('/reset-password?token=test-token')
+		await page.getByLabel('New password', { exact: true }).fill('NewPass123!')
+		await page.getByLabel('Confirm new password', { exact: true }).fill('DifferentPass!')
+		await page.getByRole('button', { name: /reset password/i }).click()
+
+		await expect(page.getByText('Passwords do not match')).toBeVisible({ timeout: 5000 })
+	})
+
+	test('reset password validates minimum length', async ({ page }) => {
+		await page.goto('/reset-password?token=test-token')
+		await page.getByLabel('New password', { exact: true }).fill('short')
+		await page.getByLabel('Confirm new password', { exact: true }).fill('short')
+		await page.getByRole('button', { name: /reset password/i }).click()
+
+		// Look specifically for the error message (not the hint text)
+		await expect(page.getByText('Password must be at least 8 characters')).toBeVisible({ timeout: 5000 })
+	})
+
+	test('login page has forgot password link', async ({ page }) => {
+		await page.goto('/login')
+		const forgotLink = page.getByRole('link', { name: /forgot your password/i })
+		await expect(forgotLink).toBeVisible()
+		await expect(forgotLink).toHaveAttribute('href', '/forgot-password')
+	})
+
+	test('forgot password page has login link', async ({ page }) => {
+		await page.goto('/forgot-password')
+		const loginLink = page.getByRole('link', { name: /sign in/i })
+		await expect(loginLink).toBeVisible()
+		await expect(loginLink).toHaveAttribute('href', '/login')
+	})
+})

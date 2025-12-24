@@ -38,6 +38,13 @@ export function createAuth(d1: D1Database, options: AuthOptions) {
 		emailAndPassword: {
 			enabled: true,
 			requireEmailVerification: true,
+			sendResetPassword: async ({ user, url }) => {
+				await options.emailService.sendPasswordResetEmail({
+					to: user.email,
+					name: user.name ?? user.email.split('@')[0],
+					resetUrl: url,
+				})
+			},
 		},
 
 		emailVerification: {
