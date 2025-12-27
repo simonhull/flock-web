@@ -185,7 +185,7 @@ test.describe('Email Verification', () => {
 		await page.click('button[type="submit"]')
 
 		// Should redirect to verify-email page (not dashboard)
-		await expect(page).toHaveURL('/verify-email')
+		await expect(page).toHaveURL(/\/verify-email/)
 		await expect(page.locator('text=Check Your Email')).toBeVisible()
 	})
 

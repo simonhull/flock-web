@@ -54,13 +54,11 @@ test.describe('Registration Page', () => {
 		await page.getByLabel('Email address').fill(email)
 		await page.getByLabel('Password', { exact: true }).fill('SecurePass123')
 		await page.getByLabel('Confirm password').fill('SecurePass123')
+		await page.getByRole('button', { name: 'Create account' }).click()
 
-		await Promise.all([
-			page.waitForURL('**/verify-email', { timeout: 15000 }),
-			page.getByRole('button', { name: 'Create account' }).click(),
-		])
+		await expect(page).toHaveURL(/\/verify-email/, { timeout: 15000 })
 		await expect(page.getByText('Check Your Email')).toBeVisible({ timeout: 10000 })
-		await expect(page.getByText('verification link')).toBeVisible({ timeout: 5000 })
+		await expect(page.getByText('We\'ve sent a verification link')).toBeVisible({ timeout: 5000 })
 	})
 
 	test('form fields are focusable via keyboard', async ({ page }) => {
@@ -104,7 +102,7 @@ test.describe('Login Page', () => {
 		await page.getByLabel('Password', { exact: true }).fill('SecurePass123')
 		await page.getByLabel('Confirm password').fill('SecurePass123')
 		await page.getByRole('button', { name: 'Create account' }).click()
-		await expect(page).toHaveURL('/verify-email', { timeout: 15000 })
+		await expect(page).toHaveURL(/\/verify-email/, { timeout: 15000 })
 
 		// Navigate to login and try to sign in with unverified account
 		await page.goto('/login')

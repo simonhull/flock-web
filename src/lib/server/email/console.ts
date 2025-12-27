@@ -1,3 +1,5 @@
+import { emails } from '$lib/emails'
+
 import type { EmailService } from './types'
 
 /**
@@ -10,10 +12,11 @@ export class ConsoleEmailService implements EmailService {
 		name: string
 		verificationUrl: string
 	}): Promise<void> {
+		const subject = emails.verification.subject({ name: params.name, verificationUrl: params.verificationUrl })
 		console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
 		console.log('📧 VERIFICATION EMAIL')
 		console.log(`   To: ${params.to}`)
-		console.log(`   Name: ${params.name}`)
+		console.log(`   Subject: ${subject}`)
 		console.log(`   URL: ${params.verificationUrl}`)
 		console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
 	}
@@ -23,10 +26,11 @@ export class ConsoleEmailService implements EmailService {
 		name: string
 		resetUrl: string
 	}): Promise<void> {
+		const subject = emails.passwordReset.subject()
 		console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
 		console.log('🔑 PASSWORD RESET EMAIL')
 		console.log(`   To: ${params.to}`)
-		console.log(`   Name: ${params.name}`)
+		console.log(`   Subject: ${subject}`)
 		console.log(`   URL: ${params.resetUrl}`)
 		console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
 	}

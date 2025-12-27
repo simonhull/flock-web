@@ -1,6 +1,8 @@
-import Renderer from 'better-svelte-email/render'
-
-import VerificationEmail from '$lib/emails/verification.svelte'
+import {
+	emails,
+	type PasswordResetEmailProps,
+	type VerificationEmailProps,
+} from '$lib/emails'
 
 import type { EmailService } from './types'
 
@@ -11,18 +13,15 @@ interface ZeptoConfig {
 }
 
 /**
- * Zepto Mail email service for production.
+ * ZeptoMail email service for production.
  * Uses native fetch for Cloudflare Workers compatibility.
  */
 export class ZeptoMailService implements EmailService {
 	private readonly apiUrl = 'https://api.zeptomail.ca/v1.1/email'
 	private readonly config: ZeptoConfig
-	private readonly renderer: { render: InstanceType<typeof Renderer>['render'] }
 
 	constructor(config: ZeptoConfig) {
 		this.config = config
-		const rendererInstance = new Renderer()
-		this.renderer = { render: rendererInstance.render.bind(rendererInstance) }
 	}
 
 	async sendVerificationEmail(params: {
@@ -30,18 +29,16 @@ export class ZeptoMailService implements EmailService {
 		name: string
 		verificationUrl: string
 	}): Promise<void> {
-		const html = await this.renderer.render(VerificationEmail, {
-			props: {
-				name: params.name,
-				verificationUrl: params.verificationUrl,
-			},
-		})
+		const props: VerificationEmailProps = {
+			name: params.name,
+			verificationUrl: params.verificationUrl,
+		}
 
 		await this.send({
 			to: params.to,
 			toName: params.name,
-			subject: 'Verify your Flock account',
-			html,
+			subject: emails.verification.subject(props),
+			html: await emails.verification.render(props),
 		})
 	}
 
@@ -50,23 +47,16 @@ export class ZeptoMailService implements EmailService {
 		name: string
 		resetUrl: string
 	}): Promise<void> {
-		// TODO: Create password reset template in TASK-001g
-		// For now, send a simple HTML email
-		const html = `
-			<div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-				<h1>Reset Your Password</h1>
-				<p>Hi ${params.name},</p>
-				<p>Click the link below to reset your password:</p>
-				<p><a href="${params.resetUrl}">${params.resetUrl}</a></p>
-				<p>If you didn't request this, you can safely ignore this email.</p>
-			</div>
-		`
+		const props: PasswordResetEmailProps = {
+			name: params.name,
+			resetUrl: params.resetUrl,
+		}
 
 		await this.send({
 			to: params.to,
 			toName: params.name,
-			subject: 'Reset your Flock password',
-			html,
+			subject: emails.passwordReset.subject(),
+			html: await emails.passwordReset.render(props),
 		})
 	}
 
@@ -102,7 +92,7 @@ export class ZeptoMailService implements EmailService {
 
 		if (!response.ok) {
 			const error = await response.text()
-			console.error('Zepto Mail error:', error)
+			console.error('ZeptoMail error:', error)
 			throw new Error(`Failed to send email: ${response.status}`)
 		}
 	}
