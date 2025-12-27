@@ -16,8 +16,12 @@ const handleAuth: RequestHandler = async ({ request, platform }) => {
 		},
 	})
 
+	// Use AUTH_BASE_URL if set, otherwise use request origin
+	// AUTH_BASE_URL is useful for dev when testing from other devices
+	const baseURL = platform.env.AUTH_BASE_URL || new URL(request.url).origin
+
 	const auth = createAuth(platform.env.DB, {
-		baseURL: new URL(request.url).origin,
+		baseURL,
 		emailService,
 	})
 

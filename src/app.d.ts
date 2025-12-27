@@ -31,6 +31,7 @@ declare global {
 				ZEPTO_MAIL_TOKEN?: string
 				ZEPTO_MAIL_FROM?: string
 				ZEPTO_MAIL_FROM_NAME?: string
+				AUTH_BASE_URL?: string
 			}
 			context: ExecutionContext
 			caches: CacheStorage

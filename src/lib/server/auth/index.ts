@@ -2,6 +2,7 @@ import { dev } from '$app/environment'
 import { getRequestEvent } from '$app/server'
 import { betterAuth } from 'better-auth'
 import { drizzleAdapter } from 'better-auth/adapters/drizzle'
+import { bearer } from 'better-auth/plugins'
 import { sveltekitCookies } from 'better-auth/svelte-kit'
 import { drizzle } from 'drizzle-orm/d1'
 
@@ -38,6 +39,7 @@ export function createAuth(d1: D1Database, options: AuthOptions) {
 		emailAndPassword: {
 			enabled: true,
 			requireEmailVerification: true,
+			autoSignIn: false, // Don't create session on sign-up; user must verify email first
 			sendResetPassword: async ({ user, url }) => {
 				await options.emailService.sendPasswordResetEmail({
 					to: user.email,
@@ -49,7 +51,7 @@ export function createAuth(d1: D1Database, options: AuthOptions) {
 
 		emailVerification: {
 			sendOnSignUp: true,
-			autoSignInAfterVerification: true,
+			autoSignInAfterVerification: false,
 			sendVerificationEmail: async ({ user, url }) => {
 				await options.emailService.sendVerificationEmail({
 					to: user.email,
@@ -90,8 +92,10 @@ export function createAuth(d1: D1Database, options: AuthOptions) {
 			},
 		},
 
-		// Handle cookies in SvelteKit form actions
-		plugins: [sveltekitCookies(getRequestEvent)],
+		// Plugins:
+		// - sveltekitCookies: Handle cookies in SvelteKit form actions
+		// - bearer: Accept Bearer token auth for mobile clients
+		plugins: [sveltekitCookies(getRequestEvent), bearer()],
 	})
 }
 

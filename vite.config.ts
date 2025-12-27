@@ -7,6 +7,11 @@ import { defineConfig } from 'vitest/config'
 export default defineConfig({
 	plugins: [tailwindcss(), sveltekit(), devtoolsJson()],
 
+	// Listen on all interfaces so mobile emulators/devices can connect
+	server: {
+		host: true,
+	},
+
 	test: {
 		expect: { requireAssertions: true },
 

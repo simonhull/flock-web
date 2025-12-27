@@ -14,18 +14,23 @@ export interface User {
 const USER_CONTEXT_KEY = Symbol('user-context')
 
 /**
- * Reactive user context using a getter function pattern.
- * This allows the context to be set during initialization with a getter
- * that returns the current reactive value.
+ * User context using a getter function pattern.
  *
  * Usage:
- * - Parent: setUserContext(() => user) where user is $state
- * - Child: const getUser = getUserContext(); getUser() // returns current user
+ * - Parent (UserProvider): setUserContext(() => user)
+ * - Child: const user = getUserContext()
+ *
+ * The UserProvider component ensures the user is resolved before
+ * children render, so getUserContext() returns the correct value.
  */
 export function setUserContext(getter: () => User | null): void {
 	setContext(USER_CONTEXT_KEY, getter)
 }
 
+/**
+ * Returns the current user from context.
+ * Must be called within a component that's a child of UserProvider.
+ */
 export function getUserContext(): User | null {
 	const getter = getContext<() => User | null>(USER_CONTEXT_KEY)
 	return getter()

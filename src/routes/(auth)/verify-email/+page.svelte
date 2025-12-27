@@ -19,16 +19,21 @@
 	let userEmail = $state<string | null>(null)
 
 	const token = $derived(page.url.searchParams.get('token'))
+	const emailParam = $derived(page.url.searchParams.get('email'))
 
 	$effect(() => {
 		if (!token) {
 			status = 'no-token'
-			// Try to get email from session for resend functionality
-			auth.getSession().then((session) => {
-				if (session.data?.user?.email) {
-					userEmail = session.data.user.email
-				}
-			})
+			// Get email from query param (after registration) or session (if signed in)
+			if (emailParam) {
+				userEmail = emailParam
+			} else {
+				auth.getSession().then((session) => {
+					if (session.data?.user?.email) {
+						userEmail = session.data.user.email
+					}
+				})
+			}
 			return
 		}
 
@@ -51,7 +56,7 @@
 			}
 
 			status = 'success'
-			setTimeout(() => goto('/dashboard'), 2000)
+			setTimeout(() => goto('/login?verified=true'), 2000)
 		}
 		catch (err) {
 			status = 'error'
@@ -150,8 +155,18 @@
 			<div class="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
 				<Mail class="h-8 w-8 text-primary" />
 			</div>
-			<p class="text-center text-muted-foreground">
-				Click the link in your email to verify your account.
+			{#if userEmail}
+				<p class="text-center text-muted-foreground">
+					We sent a verification link to
+					<span class="font-medium text-foreground">{userEmail}</span>.
+					Click the link to verify your account.
+				</p>
+			{:else}
+				<p class="text-center text-muted-foreground">
+					Click the link in your email to verify your account.
+				</p>
+			{/if}
+			<p class="text-center text-sm text-muted-foreground">
 				Check your spam folder if you don't see it.
 			</p>
 

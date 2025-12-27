@@ -96,8 +96,10 @@ export const register = form(RegisterSchema, async (data, issue) => {
 		invalid(issue.email(result.message))
 	}
 
-	// Redirect to verify-email page instead of dashboard
-	redirect(303, '/verify-email')
+	// With autoSignIn: false, no session is created on sign-up
+	// User must verify email before they can sign in
+	const email = encodeURIComponent(data.email)
+	redirect(303, `/verify-email?email=${email}`)
 })
 
 const LoginSchema = v.object({

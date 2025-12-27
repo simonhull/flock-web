@@ -1,4 +1,24 @@
+import { exec } from 'node:child_process'
+import { promisify } from 'node:util'
 import { expect, test } from '@playwright/test'
+
+const execAsync = promisify(exec)
+
+/**
+ * Helper to verify a user's email directly in the database.
+ * This is used for E2E tests to simulate email verification without
+ * needing to intercept emails or console output.
+ */
+async function verifyUserEmail(email: string): Promise<void> {
+	const dbPath = '.wrangler/state/v3/d1/miniflare-D1DatabaseObject'
+	// Find the database file (the hash changes)
+	const { stdout } = await execAsync(`find ${dbPath} -name "*.sqlite" | head -1`)
+	const dbFile = stdout.trim()
+	if (!dbFile) {
+		throw new Error('Could not find D1 database file')
+	}
+	await execAsync(`sqlite3 "${dbFile}" "UPDATE user SET email_verified = 1 WHERE email = '${email}';"`)
+}
 
 test.describe('Registration Page', () => {
 	test('displays registration form with all fields', async ({ page }) => {
@@ -142,5 +162,66 @@ test.describe('Accessibility', () => {
 
 		await page.goto('/login')
 		await expect(page).toHaveTitle(/Sign In/)
+	})
+})
+
+test.describe('Dashboard - Verified User', () => {
+	test('verified user sees "Verified" badge on dashboard', async ({ page }) => {
+		const email = `e2e-verified-${Date.now()}@example.com`
+		const password = 'SecurePass123!'
+
+		// Step 1: Register a new user
+		await page.goto('/register')
+		await page.getByLabel('Email address').fill(email)
+		await page.getByLabel('Password', { exact: true }).fill(password)
+		await page.getByLabel('Confirm password').fill(password)
+		await page.getByRole('button', { name: 'Create account' }).click()
+
+		// Wait for redirect to verify-email page (may include query params)
+		await expect(page).toHaveURL(/\/verify-email/, { timeout: 15000 })
+
+		// Step 2: Verify the email directly in the database
+		// This simulates clicking the verification link
+		await verifyUserEmail(email)
+
+		// Step 3: Sign in with the verified account
+		await page.goto('/login')
+		await page.getByLabel('Email address').fill(email)
+		await page.getByLabel('Password').fill(password)
+		await page.getByRole('button', { name: 'Sign in' }).click()
+
+		// Step 4: Should be redirected to dashboard
+		await expect(page).toHaveURL('/dashboard', { timeout: 15000 })
+
+		// Step 5: Verify the "Verified" badge is shown (not "Not verified")
+		// This tests the fix for the context timing bug
+		await expect(page.getByText('Verified', { exact: true })).toBeVisible({ timeout: 5000 })
+		await expect(page.getByText('Not verified', { exact: true })).not.toBeVisible()
+	})
+
+	test('dashboard shows user email', async ({ page }) => {
+		const email = `e2e-dashboard-${Date.now()}@example.com`
+		const password = 'SecurePass123!'
+
+		// Register
+		await page.goto('/register')
+		await page.getByLabel('Email address').fill(email)
+		await page.getByLabel('Password', { exact: true }).fill(password)
+		await page.getByLabel('Confirm password').fill(password)
+		await page.getByRole('button', { name: 'Create account' }).click()
+		await expect(page).toHaveURL(/\/verify-email/, { timeout: 15000 })
+
+		// Verify email
+		await verifyUserEmail(email)
+
+		// Sign in
+		await page.goto('/login')
+		await page.getByLabel('Email address').fill(email)
+		await page.getByLabel('Password').fill(password)
+		await page.getByRole('button', { name: 'Sign in' }).click()
+
+		// Check dashboard shows the user's email
+		await expect(page).toHaveURL('/dashboard', { timeout: 15000 })
+		await expect(page.getByText(email)).toBeVisible()
 	})
 })

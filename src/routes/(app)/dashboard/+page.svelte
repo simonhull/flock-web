@@ -8,6 +8,7 @@
 	import CheckCircle from 'lucide-svelte/icons/check-circle'
 	import AlertCircle from 'lucide-svelte/icons/alert-circle'
 
+	// Get user from context - UserProvider ensures this is set before children render
 	const user = getUserContext()
 
 	let signingOut = $state(false)
