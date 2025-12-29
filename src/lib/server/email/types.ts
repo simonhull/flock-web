@@ -8,7 +8,6 @@ export interface EmailService {
 	 */
 	sendVerificationEmail(params: {
 		to: string
-		name: string
 		verificationUrl: string
 	}): Promise<void>
 

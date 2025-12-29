@@ -26,18 +26,15 @@ export class ZeptoMailService implements EmailService {
 
 	async sendVerificationEmail(params: {
 		to: string
-		name: string
 		verificationUrl: string
 	}): Promise<void> {
 		const props: VerificationEmailProps = {
-			name: params.name,
 			verificationUrl: params.verificationUrl,
 		}
 
 		await this.send({
 			to: params.to,
-			toName: params.name,
-			subject: emails.verification.subject(props),
+			subject: emails.verification.subject(),
 			html: await emails.verification.render(props),
 		})
 	}
@@ -54,7 +51,6 @@ export class ZeptoMailService implements EmailService {
 
 		await this.send({
 			to: params.to,
-			toName: params.name,
 			subject: emails.passwordReset.subject(),
 			html: await emails.passwordReset.render(props),
 		})
@@ -62,7 +58,6 @@ export class ZeptoMailService implements EmailService {
 
 	private async send(params: {
 		to: string
-		toName: string
 		subject: string
 		html: string
 	}): Promise<void> {
@@ -81,7 +76,6 @@ export class ZeptoMailService implements EmailService {
 					{
 						email_address: {
 							address: params.to,
-							name: params.toName,
 						},
 					},
 				],

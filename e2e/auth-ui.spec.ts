@@ -20,6 +20,31 @@ async function verifyUserEmail(email: string): Promise<void> {
 	await execAsync(`sqlite3 "${dbFile}" "UPDATE user SET email_verified = 1 WHERE email = '${email}';"`)
 }
 
+/**
+ * Helper to complete the onboarding flow for E2E tests.
+ * Must be called when the page is on /onboarding.
+ */
+async function completeOnboarding(page: import('@playwright/test').Page): Promise<void> {
+	// Fill in name
+	await page.getByLabel('First name').fill('Test')
+	await page.getByLabel('Last name').fill('User')
+
+	// Wait for extended fields to appear (progressive reveal)
+	await expect(page.getByLabel('Birthday')).toBeVisible({ timeout: 5000 })
+
+	// Fill birthday (must be at least 13 years old)
+	await page.getByLabel('Birthday').fill('2000-01-01')
+
+	// Select gender
+	await page.getByRole('button', { name: 'Prefer not to say' }).click()
+
+	// Submit
+	await page.getByRole('button', { name: "Let's go!" }).click()
+
+	// Wait for redirect to dashboard
+	await expect(page).toHaveURL('/dashboard', { timeout: 15000 })
+}
+
 test.describe('Registration Page', () => {
 	test('displays registration form with all fields', async ({ page }) => {
 		await page.goto('/register')
@@ -188,8 +213,9 @@ test.describe('Dashboard - Verified User', () => {
 		await page.getByLabel('Password').fill(password)
 		await page.getByRole('button', { name: 'Sign in' }).click()
 
-		// Step 4: Should be redirected to dashboard
-		await expect(page).toHaveURL('/dashboard', { timeout: 15000 })
+		// Step 4: Complete onboarding (new users are redirected here first)
+		await expect(page).toHaveURL('/onboarding', { timeout: 15000 })
+		await completeOnboarding(page)
 
 		// Step 5: Verify the "Verified" badge is shown (not "Not verified")
 		// This tests the fix for the context timing bug
@@ -218,8 +244,11 @@ test.describe('Dashboard - Verified User', () => {
 		await page.getByLabel('Password').fill(password)
 		await page.getByRole('button', { name: 'Sign in' }).click()
 
+		// Complete onboarding (new users are redirected here first)
+		await expect(page).toHaveURL('/onboarding', { timeout: 15000 })
+		await completeOnboarding(page)
+
 		// Check dashboard shows the user's email
-		await expect(page).toHaveURL('/dashboard', { timeout: 15000 })
 		await expect(page.getByText(email)).toBeVisible()
 	})
 })

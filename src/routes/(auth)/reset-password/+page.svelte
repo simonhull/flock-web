@@ -4,9 +4,8 @@
 	import { auth } from '$lib/auth/client'
 	import { AuthLayout } from '$lib/components/auth'
 	import { Alert, AlertDescription, Button, FormField, Link } from '$lib/components/ui'
-	import LoaderCircle from 'lucide-svelte/icons/loader-circle'
-	import CheckCircle from 'lucide-svelte/icons/check-circle'
-	import XCircle from 'lucide-svelte/icons/x-circle'
+	import { faSpinner, faCircleCheck, faCircleXmark } from '@fortawesome/pro-regular-svg-icons'
+	import { FontAwesomeIcon } from '@fortawesome/svelte-fontawesome'
 	import * as v from 'valibot'
 
 	type Status = 'form' | 'loading' | 'success' | 'error' | 'no-token'
@@ -99,7 +98,7 @@
 {#if status === 'no-token'}
 	<AuthLayout title="Invalid Reset Link" subtitle="This password reset link is invalid or has expired">
 		<div class="flex flex-col items-center gap-4 py-8">
-			<XCircle class="h-16 w-16 text-destructive" />
+			<FontAwesomeIcon icon={faCircleXmark} class="size-16 text-destructive" />
 			<p class="text-center text-muted-foreground">
 				Please request a new password reset link.
 			</p>
@@ -115,14 +114,14 @@
 {:else if status === 'success'}
 	<AuthLayout title="Password Reset!" subtitle="Your password has been successfully reset">
 		<div class="flex flex-col items-center gap-4 py-8">
-			<CheckCircle class="h-16 w-16 text-green-500" />
+			<FontAwesomeIcon icon={faCircleCheck} class="size-16 text-green-500" />
 			<p class="text-muted-foreground">Redirecting to login...</p>
 		</div>
 	</AuthLayout>
 {:else if status === 'error'}
 	<AuthLayout title="Reset Failed" subtitle="We couldn't reset your password">
 		<div class="flex flex-col items-center gap-4 py-8">
-			<XCircle class="h-16 w-16 text-destructive" />
+			<FontAwesomeIcon icon={faCircleXmark} class="size-16 text-destructive" />
 			<Alert variant="destructive">
 				<AlertDescription>{serverError}</AlertDescription>
 			</Alert>
@@ -138,7 +137,7 @@
 {:else if status === 'loading'}
 	<AuthLayout title="Resetting..." subtitle="Please wait while we reset your password">
 		<div class="flex justify-center py-8">
-			<LoaderCircle class="h-12 w-12 animate-spin text-primary" />
+			<FontAwesomeIcon icon={faSpinner} class="size-12 animate-spin text-primary" />
 		</div>
 	</AuthLayout>
 {:else}

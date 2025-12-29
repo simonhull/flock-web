@@ -4,10 +4,8 @@
 	import { auth } from '$lib/auth/client'
 	import { AuthLayout } from '$lib/components/auth'
 	import { Alert, AlertDescription, Button, Link } from '$lib/components/ui'
-	import LoaderCircle from 'lucide-svelte/icons/loader-circle'
-	import CheckCircle from 'lucide-svelte/icons/check-circle'
-	import XCircle from 'lucide-svelte/icons/x-circle'
-	import Mail from 'lucide-svelte/icons/mail'
+	import { faSpinner, faCircleCheck, faCircleXmark, faEnvelope } from '@fortawesome/pro-regular-svg-icons'
+	import { FontAwesomeIcon } from '@fortawesome/svelte-fontawesome'
 
 	type Status = 'loading' | 'success' | 'error' | 'no-token'
 
@@ -99,20 +97,20 @@
 {#if status === 'loading'}
 	<AuthLayout title="Verifying..." subtitle="Please wait while we verify your email">
 		<div class="flex justify-center py-8">
-			<LoaderCircle class="h-12 w-12 animate-spin text-primary" />
+			<FontAwesomeIcon icon={faSpinner} class="size-12 animate-spin text-primary" />
 		</div>
 	</AuthLayout>
 {:else if status === 'success'}
 	<AuthLayout title="Email Verified!" subtitle="Your email has been verified successfully">
 		<div class="flex flex-col items-center gap-4 py-8">
-			<CheckCircle class="h-16 w-16 text-green-500" />
+			<FontAwesomeIcon icon={faCircleCheck} class="size-16 text-green-500" />
 			<p class="text-muted-foreground">Redirecting to dashboard...</p>
 		</div>
 	</AuthLayout>
 {:else if status === 'error'}
 	<AuthLayout title="Verification Failed" subtitle="We couldn't verify your email">
 		<div class="flex flex-col items-center gap-4 py-8">
-			<XCircle class="h-16 w-16 text-destructive" />
+			<FontAwesomeIcon icon={faCircleXmark} class="size-16 text-destructive" />
 			<Alert variant="destructive">
 				<AlertDescription>{errorMessage}</AlertDescription>
 			</Alert>
@@ -131,7 +129,7 @@
 
 			<Button onclick={resendVerification} disabled={isResending || !userEmail}>
 				{#if isResending}
-					<LoaderCircle class="mr-2 h-4 w-4 animate-spin" />
+					<FontAwesomeIcon icon={faSpinner} class="mr-2 size-4 animate-spin" />
 					Sending...
 				{:else}
 					Resend verification email
@@ -152,8 +150,8 @@
 {:else}
 	<AuthLayout title="Check Your Email" subtitle="We've sent a verification link to your inbox">
 		<div class="flex flex-col items-center gap-6 py-8">
-			<div class="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
-				<Mail class="h-8 w-8 text-primary" />
+			<div class="flex size-16 items-center justify-center rounded-full bg-primary/10">
+				<FontAwesomeIcon icon={faEnvelope} class="size-8 text-primary" />
 			</div>
 			{#if userEmail}
 				<p class="text-center text-muted-foreground">
@@ -184,7 +182,7 @@
 
 			<Button variant="outline" onclick={resendVerification} disabled={isResending || !userEmail}>
 				{#if isResending}
-					<LoaderCircle class="mr-2 h-4 w-4 animate-spin" />
+					<FontAwesomeIcon icon={faSpinner} class="mr-2 size-4 animate-spin" />
 					Sending...
 				{:else}
 					Resend verification email

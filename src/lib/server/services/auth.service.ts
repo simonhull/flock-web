@@ -21,6 +21,7 @@ export interface AuthService {
 	signOut(headers: Headers): Promise<void>
 	getSession(headers: Headers): Promise<User | null>
 	requestPasswordReset(email: string, redirectTo: string): Promise<void>
+	updateUserName(name: string, headers: Headers): Promise<void>
 }
 
 // ============================================================================
@@ -159,6 +160,18 @@ export function createAuthService(
 			}
 			catch {
 				// Silently succeed even if email doesn't exist (security: don't reveal if email exists)
+			}
+		},
+
+		async updateUserName(name, headers) {
+			try {
+				await auth.api.updateUser({
+					body: { name },
+					headers,
+				})
+			}
+			catch {
+				// Silently fail - name update is not critical
 			}
 		},
 	}

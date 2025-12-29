@@ -61,13 +61,31 @@ describe('schema', () => {
 			const columns = Object.keys(schema.profile)
 			expect(columns).toContain('id')
 			expect(columns).toContain('userId')
+			expect(columns).toContain('firstName')
+			expect(columns).toContain('lastName')
+			expect(columns).toContain('birthday')
+			expect(columns).toContain('gender')
 			expect(columns).toContain('displayName')
+			expect(columns).toContain('phoneNumber')
 			expect(columns).toContain('bio')
 			expect(columns).toContain('avatarUrl')
+			expect(columns).toContain('addressId')
+			expect(columns).toContain('onboardingComplete')
+			expect(columns).toContain('createdAt')
+			expect(columns).toContain('updatedAt')
+		})
+	})
+
+	describe('address table', () => {
+		it('has correct columns for reusable addresses', () => {
+			const columns = Object.keys(schema.address)
+			expect(columns).toContain('id')
+			expect(columns).toContain('line1')
+			expect(columns).toContain('line2')
 			expect(columns).toContain('city')
 			expect(columns).toContain('state')
+			expect(columns).toContain('postalCode')
 			expect(columns).toContain('country')
-			expect(columns).toContain('isPublic')
 			expect(columns).toContain('createdAt')
 			expect(columns).toContain('updatedAt')
 		})
@@ -90,6 +108,12 @@ describe('schema', () => {
 		it('exports Session types', () => {
 			const _session: schema.Session = {} as schema.Session
 			const _newSession: schema.NewSession = {} as schema.NewSession
+			expect(true).toBe(true)
+		})
+
+		it('exports Address types', () => {
+			const _address: schema.Address = {} as schema.Address
+			const _newAddress: schema.NewAddress = {} as schema.NewAddress
 			expect(true).toBe(true)
 		})
 	})

@@ -3,8 +3,8 @@
 	import { forgotPassword } from '$lib/auth.remote'
 	import { AuthLayout } from '$lib/components/auth'
 	import { Button, FormField, Link } from '$lib/components/ui'
-	import LoaderCircle from 'lucide-svelte/icons/loader-circle'
-	import Mail from 'lucide-svelte/icons/mail'
+	import { faSpinner, faEnvelope } from '@fortawesome/pro-regular-svg-icons'
+	import { FontAwesomeIcon } from '@fortawesome/svelte-fontawesome'
 
 	const sent = $derived(page.url.searchParams.get('sent') === 'true')
 </script>
@@ -16,8 +16,8 @@
 {#if sent}
 	<AuthLayout title="Check Your Email" subtitle="We've sent a password reset link">
 		<div class="flex flex-col items-center gap-6 py-8">
-			<div class="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
-				<Mail class="h-8 w-8 text-primary" />
+			<div class="flex size-16 items-center justify-center rounded-full bg-primary/10">
+				<FontAwesomeIcon icon={faEnvelope} class="size-8 text-primary" />
 			</div>
 			<p class="text-center text-muted-foreground">
 				If an account exists with that email, you'll receive a reset link shortly.
@@ -48,7 +48,7 @@
 
 			<Button type="submit" class="w-full" disabled={!!forgotPassword.pending}>
 				{#if forgotPassword.pending}
-					<LoaderCircle class="animate-spin" />
+					<FontAwesomeIcon icon={faSpinner} class="animate-spin" />
 					Sending...
 				{:else}
 					Send reset link

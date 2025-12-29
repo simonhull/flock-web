@@ -2,7 +2,8 @@
 	import { register } from '$lib/auth.remote'
 	import { AuthLayout } from '$lib/components/auth'
 	import { Alert, AlertDescription, Button, FormField, Link } from '$lib/components/ui'
-	import LoaderCircle from 'lucide-svelte/icons/loader-circle'
+	import { faSpinner } from '@fortawesome/pro-regular-svg-icons'
+	import { FontAwesomeIcon } from '@fortawesome/svelte-fontawesome'
 </script>
 
 <svelte:head>
@@ -52,7 +53,7 @@
 
 		<Button type="submit" class="w-full" disabled={!!register.pending}>
 			{#if register.pending}
-				<LoaderCircle class="animate-spin" />
+				<FontAwesomeIcon icon={faSpinner} class="animate-spin" />
 				Creating account...
 			{:else}
 				Create account

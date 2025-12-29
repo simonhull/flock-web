@@ -4,9 +4,8 @@
 	import { logout } from '$lib/auth.remote'
 	import { Alert, AlertDescription, Button, Card, CardContent } from '$lib/components/ui'
 	import { getUserContext } from '$lib/stores/user.svelte'
-	import LoaderCircle from 'lucide-svelte/icons/loader-circle'
-	import CheckCircle from 'lucide-svelte/icons/check-circle'
-	import AlertCircle from 'lucide-svelte/icons/alert-circle'
+	import { faSpinner, faCircleCheck, faCircleExclamation } from '@fortawesome/pro-regular-svg-icons'
+	import { FontAwesomeIcon } from '@fortawesome/svelte-fontawesome'
 
 	// Get user from context - UserProvider ensures this is set before children render
 	const user = getUserContext()
@@ -61,7 +60,7 @@
 	<main class="mx-auto max-w-4xl px-4 py-8">
 		{#if user && !user.emailVerified}
 			<Alert class="mb-6">
-				<AlertCircle class="h-4 w-4" />
+				<FontAwesomeIcon icon={faCircleExclamation} class="size-4" />
 				<AlertDescription class="flex items-center justify-between">
 					<span>Please verify your email address to access all features.</span>
 					<Button
@@ -71,7 +70,7 @@
 						disabled={isResending}
 					>
 						{#if isResending}
-							<LoaderCircle class="mr-2 h-3 w-3 animate-spin" />
+							<FontAwesomeIcon icon={faSpinner} class="mr-2 size-3 animate-spin" />
 							Sending...
 						{:else}
 							Resend email
@@ -82,7 +81,7 @@
 
 			{#if resendSuccess}
 				<Alert class="mb-6">
-					<CheckCircle class="h-4 w-4 text-green-500" />
+					<FontAwesomeIcon icon={faCircleCheck} class="size-4 text-green-500" />
 					<AlertDescription>Verification email sent! Check your inbox.</AlertDescription>
 				</Alert>
 			{/if}
@@ -99,14 +98,14 @@
 						<span
 							class="ml-2 inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-xs text-green-700 dark:bg-green-900/30 dark:text-green-400"
 						>
-							<CheckCircle class="h-3 w-3" />
+							<FontAwesomeIcon icon={faCircleCheck} class="size-3" />
 							Verified
 						</span>
 					{:else}
 						<span
 							class="ml-2 inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
 						>
-							<AlertCircle class="h-3 w-3" />
+							<FontAwesomeIcon icon={faCircleExclamation} class="size-3" />
 							Not verified
 						</span>
 					{/if}

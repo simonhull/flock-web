@@ -9,10 +9,9 @@ import type { EmailService } from './types'
 export class ConsoleEmailService implements EmailService {
 	async sendVerificationEmail(params: {
 		to: string
-		name: string
 		verificationUrl: string
 	}): Promise<void> {
-		const subject = emails.verification.subject({ name: params.name, verificationUrl: params.verificationUrl })
+		const subject = emails.verification.subject()
 		console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
 		console.log('📧 VERIFICATION EMAIL')
 		console.log(`   To: ${params.to}`)

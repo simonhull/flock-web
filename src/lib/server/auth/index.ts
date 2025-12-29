@@ -43,7 +43,7 @@ export function createAuth(d1: D1Database, options: AuthOptions) {
 			sendResetPassword: async ({ user, url }) => {
 				await options.emailService.sendPasswordResetEmail({
 					to: user.email,
-					name: user.name ?? user.email.split('@')[0],
+					name: user.name ?? 'there',
 					resetUrl: url,
 				})
 			},
@@ -55,7 +55,6 @@ export function createAuth(d1: D1Database, options: AuthOptions) {
 			sendVerificationEmail: async ({ user, url }) => {
 				await options.emailService.sendVerificationEmail({
 					to: user.email,
-					name: user.name ?? user.email.split('@')[0],
 					verificationUrl: url,
 				})
 			},
@@ -74,23 +73,9 @@ export function createAuth(d1: D1Database, options: AuthOptions) {
 
 		trustedOrigins,
 
-		// Create profile when user signs up
-		databaseHooks: {
-			user: {
-				create: {
-					after: async (user) => {
-						// User is guaranteed to exist after creation
-						if (!user.id)
-							return
-						const displayName = user.name ?? user.email.split('@')[0]
-						await db.insert(schema.profile).values({
-							userId: user.id,
-							displayName,
-						})
-					},
-				},
-			},
-		},
+		// Note: Profile is created during onboarding, not at signup.
+		// Users must complete onboarding (firstName, lastName, birthday, gender)
+		// before their profile exists.
 
 		// Plugins:
 		// - sveltekitCookies: Handle cookies in SvelteKit form actions

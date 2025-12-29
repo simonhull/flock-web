@@ -27,11 +27,13 @@ declare global {
 		interface Platform {
 			env: {
 				DB: D1Database
+				STORAGE: R2Bucket
 				EMAIL_PROVIDER?: string
 				ZEPTO_MAIL_TOKEN?: string
 				ZEPTO_MAIL_FROM?: string
 				ZEPTO_MAIL_FROM_NAME?: string
 				AUTH_BASE_URL?: string
+				STORAGE_PUBLIC_URL?: string
 			}
 			context: ExecutionContext
 			caches: CacheStorage

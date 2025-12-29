@@ -3,16 +3,15 @@
 	import EmailLayout from './EmailLayout.svelte'
 
 	interface Props {
-		name: string
 		verificationUrl: string
 	}
 
-	let { name, verificationUrl }: Props = $props()
+	let { verificationUrl }: Props = $props()
 </script>
 
 <EmailLayout preview="Verify your email to get started with Flock">
 	<Text style="color: #1f2937; font-size: 20px; font-weight: 600; margin: 0 0 16px 0;">
-		Welcome, {name}
+		Welcome to Flock
 	</Text>
 
 	<Text style="color: #4b5563; font-size: 16px; line-height: 24px; margin: 0 0 24px 0;">

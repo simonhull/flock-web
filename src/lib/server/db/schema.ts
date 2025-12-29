@@ -100,8 +100,39 @@ export const verification = sqliteTable('verification', {
 })
 
 // ============================================================================
+// ADDRESS - Reusable for profiles, churches, events
+// ============================================================================
+
+/**
+ * Physical addresses. Reusable across entities.
+ * Profiles, churches, and events can all reference addresses.
+ */
+export const address = sqliteTable('address', {
+	id: id(),
+	line1: text('line1'),
+	line2: text('line2'),
+	city: text('city'),
+	state: text('state'),
+	postalCode: text('postal_code'),
+	country: text('country'),
+	...timestamps,
+})
+
+// ============================================================================
 // PROFILE - The portable identity (Flock-specific)
 // ============================================================================
+
+/**
+ * Gender options for profile.
+ */
+export const genderEnum = ['male', 'female', 'prefer_not_to_say'] as const
+export type Gender = (typeof genderEnum)[number]
+
+/**
+ * Marital status options for profile.
+ */
+export const maritalStatusEnum = ['single', 'married', 'divorced', 'widowed', 'prefer_not_to_say'] as const
+export type MaritalStatus = (typeof maritalStatusEnum)[number]
 
 /**
  * THIS IS THE SOUL OF FLOCK.
@@ -120,18 +151,27 @@ export const profile = sqliteTable('profile', {
 		.notNull()
 		.references(() => user.id, { onDelete: 'cascade' }),
 
-	// Display identity
+	// Required (onboarding)
+	firstName: text('first_name').notNull(),
+	lastName: text('last_name').notNull(),
+	birthday: text('birthday').notNull(), // ISO date 'YYYY-MM-DD'
+	gender: text('gender', { enum: genderEnum }).notNull(),
+
+	// Computed/synced
 	displayName: text('display_name').notNull(),
-	bio: text('bio'),
+
+	// Optional (profile settings)
+	phoneNumber: text('phone_number'),
 	avatarUrl: text('avatar_url'),
+	bio: text('bio'),
+	maritalStatus: text('marital_status', { enum: maritalStatusEnum }),
+	anniversary: text('anniversary'), // ISO date
 
-	// Location (for church discovery)
-	city: text('city'),
-	state: text('state'),
-	country: text('country'),
+	// Address reference
+	addressId: text('address_id').references(() => address.id, { onDelete: 'set null' }),
 
-	// Privacy
-	isPublic: integer('is_public', { mode: 'boolean' }).notNull().default(true),
+	// System
+	onboardingComplete: integer('onboarding_complete', { mode: 'boolean' }).notNull().default(false),
 
 	...timestamps,
 }, table => [
@@ -170,6 +210,14 @@ export const profileRelations = relations(profile, ({ one }) => ({
 		fields: [profile.userId],
 		references: [user.id],
 	}),
+	address: one(address, {
+		fields: [profile.addressId],
+		references: [address.id],
+	}),
+}))
+
+export const addressRelations = relations(address, ({ many }) => ({
+	profiles: many(profile),
 }))
 
 // ============================================================================
@@ -190,3 +238,6 @@ export type NewVerification = typeof verification.$inferInsert
 
 export type Profile = typeof profile.$inferSelect
 export type NewProfile = typeof profile.$inferInsert
+
+export type Address = typeof address.$inferSelect
+export type NewAddress = typeof address.$inferInsert

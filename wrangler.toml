@@ -8,3 +8,10 @@ compatibility_flags = [ "nodejs_compat" ]
 binding = "DB"
 database_name = "flock-local"
 database_id = "local"
+
+# R2 storage for uploads (avatars, etc.)
+# Local dev uses Miniflare's R2 simulator automatically
+[[r2_buckets]]
+binding = "STORAGE"
+bucket_name = "flock-uploads"
+preview_bucket_name = "flock-uploads-dev"

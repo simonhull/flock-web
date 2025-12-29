@@ -8,7 +8,6 @@ import VerificationEmail from './verification.svelte'
 // ============================================================================
 
 export interface VerificationEmailProps {
-	name: string
 	verificationUrl: string
 }
 
@@ -33,7 +32,7 @@ const getRenderer = () => (renderer ??= new Renderer())
 
 export const emails = {
 	verification: {
-		subject: ({ name }: VerificationEmailProps) => `Welcome to Flock, ${name}`,
+		subject: () => 'Verify your Flock account',
 		render: (props: VerificationEmailProps) => getRenderer().render(VerificationEmail, { props }),
 	},
 

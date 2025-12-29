@@ -2,9 +2,13 @@ import { redirect, type Handle } from '@sveltejs/kit'
 
 import { createEmailService } from '$lib/server/email'
 import { createAuthService } from '$lib/server/services/auth.service'
+import { createProfileService } from '$lib/server/services/profile.service'
 
 // Routes that don't require authentication
 const publicRoutes = ['/login', '/register', '/verify-email', '/forgot-password', '/reset-password', '/api/auth', '/api/health']
+
+// Routes that don't require onboarding to be complete
+const onboardingExemptRoutes = ['/onboarding', '/api']
 
 // Check if a path is public
 function isPublicRoute(path: string): boolean {
@@ -77,6 +81,20 @@ export const handle: Handle = async ({ event, resolve }) => {
 	// Redirect unverified users to verify-email (except for verify-email page itself)
 	if (!user.emailVerified && url.pathname !== '/verify-email') {
 		redirect(303, '/verify-email')
+	}
+
+	// Check if onboarding is complete (for verified users)
+	const isOnboardingExempt = onboardingExemptRoutes.some(
+		route => url.pathname === route || url.pathname.startsWith(`${route}/`),
+	)
+
+	if (!isOnboardingExempt) {
+		const profileService = createProfileService(platform.env.DB)
+		const onboardingComplete = await profileService.isOnboardingComplete(user.id)
+
+		if (!onboardingComplete) {
+			redirect(303, '/onboarding')
+		}
 	}
 
 	// If authenticated user hits home page, send to dashboard

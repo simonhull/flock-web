@@ -1,23 +1,17 @@
 <script lang="ts">
-	import { getUser } from '$lib/auth.remote'
+	import { AppHeader } from '$lib/components/app'
 	import UserProvider from './UserProvider.svelte'
 
-	const { children } = $props()
+	import type { LayoutData } from './$types'
+
+	const { data, children }: { data: LayoutData; children: import('svelte').Snippet } = $props()
 </script>
 
-{#await getUser()}
-	<div class="flex min-h-screen items-center justify-center bg-background">
-		<div class="animate-pulse text-muted-foreground">Loading...</div>
+<UserProvider user={data.user}>
+	<div class="min-h-screen bg-background">
+		<AppHeader />
+		<main>
+			{@render children()}
+		</main>
 	</div>
-{:then user}
-	<UserProvider {user}>
-		{@render children()}
-	</UserProvider>
-{:catch}
-	<div class="flex min-h-screen items-center justify-center bg-background">
-		<div class="text-center">
-			<p class="text-destructive">Failed to load session</p>
-			<p class="mt-2 text-sm text-muted-foreground">Please refresh the page</p>
-		</div>
-	</div>
-{/await}
+</UserProvider>

@@ -3,8 +3,8 @@
 	import { login } from '$lib/auth.remote'
 	import { AuthLayout } from '$lib/components/auth'
 	import { Alert, AlertDescription, Button, FormField, Link } from '$lib/components/ui'
-	import CheckCircle from 'lucide-svelte/icons/check-circle'
-	import LoaderCircle from 'lucide-svelte/icons/loader-circle'
+	import { faCircleCheck, faSpinner } from '@fortawesome/pro-regular-svg-icons'
+	import { FontAwesomeIcon } from '@fortawesome/svelte-fontawesome'
 
 	const redirectTo = $derived(page.url.searchParams.get('redirectTo') ?? '')
 	const verified = $derived(page.url.searchParams.get('verified') === 'true')
@@ -23,7 +23,7 @@
 
 		{#if verified}
 			<Alert class="border-green-200 bg-green-50 dark:border-green-900 dark:bg-green-950">
-				<CheckCircle class="h-4 w-4 text-green-600 dark:text-green-400" />
+				<FontAwesomeIcon icon={faCircleCheck} class="size-4 text-green-600 dark:text-green-400" />
 				<AlertDescription class="text-green-800 dark:text-green-200">
 					Email verified! You can now sign in.
 				</AlertDescription>
@@ -52,7 +52,7 @@
 
 		<Button type="submit" class="w-full" disabled={!!login.pending}>
 			{#if login.pending}
-				<LoaderCircle class="animate-spin" />
+				<FontAwesomeIcon icon={faSpinner} class="animate-spin" />
 				Signing in...
 			{:else}
 				Sign in
